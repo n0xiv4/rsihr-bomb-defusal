@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="UTF-8">
+    <title>Instruções</title>
+
+    <style>
+  .instructions {
+    position: fixed;
+    inset: 0;
+    background: #111;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    font-family: sans-serif;
+  }
+</style>
+
+
+  </head>
+  <body>
+    <div class="instructions">
+      <h1>Antes de começar</h1>
+      <p>Usa o rato para rodar a cena e a roda para dar zoom.</p>
+      <button id="start">Começar</button>
+    </div>
+  </body>
+
+  <script>
+  document.getElementById("start").onclick = () => {
+    window.location.href = "/"; 
+  };
+</script>
+
+</html>
