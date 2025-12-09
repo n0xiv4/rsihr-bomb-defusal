@@ -198,8 +198,9 @@ function startRound(index) {
   currentRoundIndex = index;
   const roundData = allRounds[index];
   isRoundActive = true;
-  bombCounter.timeLeft = 45.00;
-  bombCounter.isRunning = true;
+
+  // Timer: 40s (handled by default in reset)
+  bombCounter.reset();
 
   // Hide Overlay
   overlay.classList.remove('visible');
