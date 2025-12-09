@@ -19,12 +19,12 @@ class DummyLLM {
         reply = prompt.slice(8).split('').reverse().join('')
       } else if (lower.startsWith('summary ') || lower.startsWith('summarize ')) {
         const body = prompt.split(' ').slice(1).join(' ')
-        reply = body.split('.').slice(0,2).join('.').trim() || body
+        reply = body.split('.').slice(0, 2).join('.').trim() || body
       } else if (lower.includes('bomb')) {
-        reply = "I see you have a bomb viewer. Nice 3D model — you can rotate and zoom it." 
+        reply = "I see you have a bomb viewer. Nice 3D model — you can rotate and zoom it."
       } else {
         // Default: echo back with a tiny change
-        reply = `You said: "${prompt}"` 
+        reply = `You said: "${prompt}"`
       }
 
       // Simulate thinking time proportional to message length
@@ -93,6 +93,21 @@ export function initLLM({ container }) {
       messages.appendChild(createBubble(doneMessage, false))
       messages.scrollTop = messages.scrollHeight
     }, ms)
+  }
+
+  container.addMessage = (text, sender = 'LLM') => {
+    const bubble = createBubble(text, false)
+    if (sender !== 'LLM') {
+      bubble.classList.add('sender-' + sender.toLowerCase().replace(/\s+/g, '-'));
+      const prefix = document.createElement('strong');
+      prefix.style.display = 'block';
+      prefix.style.fontSize = '0.8em';
+      prefix.style.marginBottom = '4px';
+      prefix.textContent = sender;
+      bubble.prepend(prefix);
+    }
+    messages.appendChild(bubble)
+    messages.scrollTop = messages.scrollHeight
   }
 }
 

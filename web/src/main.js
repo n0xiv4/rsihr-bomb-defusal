@@ -14,6 +14,7 @@ import { initLLM } from './llm.js'
 // ... (previous imports)
 
 // Scene setup
+// Scene setup
 const scene = new THREE.Scene()
 scene.fog = new THREE.FogExp2(0x111111, 0.02)
 
@@ -38,16 +39,8 @@ audioLoader.load('/audio/csgo_main_theme.mp3', function (buffer) {
   sound.setBuffer(buffer)
   sound.setLoop(true)
   sound.setVolume(0.05)
-
-  // Handle Autoplay Policy
   if (listener.context.state === 'suspended') {
-    const resumeAudio = () => {
-      listener.context.resume().then(() => {
-        sound.play()
-      })
-      window.removeEventListener('click', resumeAudio)
-      window.removeEventListener('keydown', resumeAudio)
-    }
+    const resumeAudio = () => { listener.context.resume().then(() => sound.play()); window.removeEventListener('click', resumeAudio); window.removeEventListener('keydown', resumeAudio); }
     window.addEventListener('click', resumeAudio)
     window.addEventListener('keydown', resumeAudio)
   } else {
@@ -55,7 +48,7 @@ audioLoader.load('/audio/csgo_main_theme.mp3', function (buffer) {
   }
 })
 
-// Renderer setup
+// Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
@@ -64,22 +57,37 @@ renderer.toneMappingExposure = 0.5
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
-// Create a two-column layout: left = 3D viewer, right = dummy LLM chat
+// DOM Setup
 const app = document.querySelector('#app')
 app.innerHTML = `
   <div class="layout">
     <div id="viewer" class="viewer" aria-label="3D viewer"></div>
     <div id="llm" class="llm" aria-label="Chat with dummy LLM"></div>
   </div>
+  
+  <!-- RESULT OVERLAY -->
+  <div id="gameOverlay" class="game-overlay">
+    <div class="overlay-content">
+      <h1 id="overlayTitle" class="overlay-title"></h1>
+      <div id="overlayRound" class="overlay-round"></div>
+      <div class="overlay-timer">
+        Next round in: <span id="overlayTimerCount" class="timer-count">10</span>
+      </div>
+    </div>
+  </div>
 `
-
 const viewer = document.getElementById('viewer')
 viewer.appendChild(renderer.domElement)
+const llmContainer = document.getElementById('llm')
+initLLM({ container: llmContainer })
 
-// Initialize the dummy LLM UI in the right panel
-initLLM({ container: document.getElementById('llm') })
+// Overlay Elements
+const overlay = document.getElementById('gameOverlay');
+const overlayTitle = document.getElementById('overlayTitle');
+const overlayRound = document.getElementById('overlayRound');
+const overlayTimerCount = document.getElementById('overlayTimerCount');
 
-// Environment Setup (Better Lighting)
+// Environment
 const pmremGenerator = new THREE.PMREMGenerator(renderer)
 scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture
 
@@ -91,76 +99,214 @@ controls.minDistance = 1
 controls.maxDistance = 10
 controls.target.set(0, 0.5, 0)
 
-// Grid Helper
 const gridHelper = new THREE.GridHelper(20, 20, 0x444444, 0x222222)
 scene.add(gridHelper)
 
-// Counter Logic
 const bombCounter = new BombCounter()
 
-// Load Model
-const loader = new GLTFLoader()
-loader.load(
-  '/bomb_test.glb',
-  (gltf) => {
-    const model = gltf.scene
+// Sounds
+const soundContext = listener.context;
+const audioBuffers = {
+  defused: null,
+  explosion: null
+};
 
-    // Find the screen mesh and apply texture
-    // NOTE: You must name the mesh 'CounterDisplay' in Blender!
-    const displayMesh = model.getObjectByName('counter')
+// Preload SFX
+const sfxLoader = new THREE.AudioLoader();
+sfxLoader.load('/audio/defused_bomb.mp3', (buffer) => { audioBuffers.defused = buffer; });
+sfxLoader.load('/audio/bomb_explosion.mp3', (buffer) => { audioBuffers.explosion = buffer; });
+
+function playSound(type) {
+  if (audioBuffers[type] && soundContext.state === 'running') {
+    const sfx = new THREE.Audio(listener);
+    sfx.setBuffer(audioBuffers[type]);
+    sfx.setVolume(0.5);
+    sfx.play();
+  }
+}
+
+// --- GAME STATE MANAGEMENT ---
+let gameConfig = null;
+let currentRoundIndex = 0;
+let allRounds = [];
+let bombModel = null;
+let isRoundActive = false;
+let countdownInterval = null;
+
+// Load Configuration
+const urlParams = new URLSearchParams(window.location.search);
+const condition = urlParams.get('condition') === 'b' ? 'condition_b.json' : 'condition_a.json';
+
+fetch(`/config/${condition}`)
+  .then(res => res.json())
+  .then(config => {
+    gameConfig = config;
+    allRounds = [...config.tutorial, ...config.rounds];
+    console.log(`Loaded Condition: ${config.conditionName}`);
+    loadModel();
+  })
+  .catch(err => console.error("Failed to load config:", err));
+
+
+function loadModel() {
+  const loader = new GLTFLoader()
+  loader.load('/bomb_test.glb', (gltf) => {
+    bombModel = gltf.scene;
+
+    // Setup Counter Mesh
+    const displayMesh = bombModel.getObjectByName('counter');
     if (displayMesh) {
       displayMesh.material = new THREE.MeshStandardMaterial({
         map: bombCounter.getTexture(),
-        transparent: true, // Enable transparency
-        emissive: 0xff0000, // Make it glow red
+        transparent: true,
+        emissive: 0xff0000,
         emissiveMap: bombCounter.getTexture(),
         emissiveIntensity: 2,
         roughness: 0.2,
         metalness: 0.8
-      })
-      // If the texture is flipped, uncomment this:
-      // bombCounter.getTexture().flipY = false;
-    } else {
-      console.warn('Could not find mesh named "counter". Did you name it correctly in Blender?')
+      });
     }
 
-    model.traverse((child) => {
+    bombModel.traverse((child) => {
       if (child.isMesh) {
-        child.castShadow = true
-        child.receiveShadow = true
+        child.castShadow = true;
+        child.receiveShadow = true;
+        if (child.name.endsWith('_d')) child.visible = false;
+      }
+    });
 
-        // Hide broken cables initially
-        if (child.name.endsWith('_d')) {
-          child.visible = false
+    const box = new THREE.Box3().setFromObject(bombModel);
+    const center = box.getCenter(new THREE.Vector3());
+    bombModel.position.sub(center);
+    bombModel.scale.set(5, 5, 5);
+    bombModel.position.y += (box.max.y - box.min.y) / 2 * 5;
+
+    scene.add(bombModel);
+
+    // START GAME
+    startRound(0);
+  });
+}
+
+function startRound(index) {
+  if (index >= allRounds.length) {
+    llmContainer.addMessage("Simulation Complete. Thank you for participating!", "System");
+    isRoundActive = false;
+    return;
+  }
+
+  currentRoundIndex = index;
+  const roundData = allRounds[index];
+  isRoundActive = true;
+  bombCounter.timeLeft = 45.00;
+  bombCounter.isRunning = true;
+
+  // Hide Overlay
+  overlay.classList.remove('visible');
+
+  // Clear Chat for cleanliness per round?? No, history is good.
+  const roundLabel = index < 2 ? `TUTORIAL ${index + 1}` : `ROUND ${index - 1}`;
+  llmContainer.addMessage(`--- ${roundLabel} START ---`, "System");
+
+  // Setup Cables
+  const wiresToShow = roundData.wireCount;
+
+  bombModel.traverse((child) => {
+    if (child.name.startsWith('cable') && !child.name.endsWith('_d')) {
+      const num = parseInt(child.name.replace('cable', ''));
+      if (!isNaN(num)) {
+        child.visible = num <= wiresToShow;
+        if (originalMaterials.has(child.uuid)) {
+          child.material = originalMaterials.get(child.uuid);
         }
       }
-    })
+      const brokenName = child.name + '_d';
+      const broken = bombModel.getObjectByName(brokenName);
+      if (broken) broken.visible = false;
+    }
+  });
 
-    // Center the model
-    const box = new THREE.Box3().setFromObject(model)
-    const center = box.getCenter(new THREE.Vector3())
-    model.position.sub(center) // Center at 0,0,0
+  // Provide Suggestions 
+  setTimeout(() => {
+    if (!isRoundActive) return;
+    llmContainer.addMessage(`I've analyzed the module. Recommend cutting ${roundData.llmSuggestion}.`, "LLM");
+  }, 1000);
 
-    // Scale up
-    model.scale.set(5, 5, 5)
+  // Dash Logic: NO LONGER IN CHAT, just internal logic if visuals were needed.
+  // We keep it running but silent as requested.
+}
 
-    model.position.y += (box.max.y - box.min.y) / 2 * 5 // Move up so it sits on grid, accounting for scale
+function showResultOverlay(result, roundIdx) {
+  isRoundActive = false;
+  bombCounter.isRunning = false;
 
-    scene.add(model)
+  const isWin = result === 'win';
+  const roundLabel = roundIdx < 2 ? `Tutorial ${roundIdx + 1}` : `Round ${roundIdx - 1}`;
 
-    // Optional: Auto-rotate
-    // model.rotation.y = Math.PI / 4
-  },
-  (xhr) => {
-    console.log((xhr.loaded / xhr.total * 100) + '% loaded')
-  },
-  (error) => {
-    console.error('An error happened', error)
+  overlayTitle.textContent = isWin ? 'BOMB DEFUSED' : 'EXPLOSION DETECTED';
+  overlayTitle.className = 'overlay-title ' + (isWin ? 'win' : 'loss');
+
+  overlayRound.textContent = `${roundLabel} Complete`;
+
+  // Play Sound
+  playSound(isWin ? 'defused' : 'explosion');
+
+  overlay.classList.add('visible');
+
+  // Countdown
+  let seconds = 10;
+  overlayTimerCount.textContent = seconds;
+
+  if (countdownInterval) clearInterval(countdownInterval);
+
+  countdownInterval = setInterval(() => {
+    seconds--;
+    overlayTimerCount.textContent = seconds;
+    if (seconds <= 0) {
+      clearInterval(countdownInterval);
+      startRound(roundIdx + 1);
+    }
+  }, 1000);
+}
+
+// Interaction
+function onPointerMove(event) {
+  const rect = viewer.getBoundingClientRect()
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+}
+
+function onClick(event) {
+  if (!isRoundActive || !gameConfig) return;
+
+  if (hoveredObject) {
+    const cableName = hoveredObject.name;
+    const brokenCableName = cableName + '_d';
+    const brokenCable = scene.getObjectByName(brokenCableName);
+
+    if (brokenCable) {
+      // Cut Animation
+      if (originalMaterials.has(hoveredObject.uuid)) {
+        hoveredObject.material = originalMaterials.get(hoveredObject.uuid);
+        originalMaterials.delete(hoveredObject.uuid);
+      }
+      hoveredObject.visible = false;
+      brokenCable.visible = true;
+      hoveredObject = null;
+
+      // Validate Cut
+      const roundData = allRounds[currentRoundIndex];
+      const isCorrect = cableName === roundData.correctWire;
+
+      showResultOverlay(isCorrect ? 'win' : 'loss', currentRoundIndex);
+    }
   }
-)
+}
 
-// Handle Resize
-// Handle Resize
+viewer.addEventListener('mousemove', onPointerMove)
+viewer.addEventListener('click', onClick)
+
+// Render Loop
 const resizeObserver = new ResizeObserver(() => {
   const rect = viewer.getBoundingClientRect()
   if (rect.width > 0 && rect.height > 0) {
@@ -171,81 +317,44 @@ const resizeObserver = new ResizeObserver(() => {
 })
 resizeObserver.observe(viewer)
 
-// Interaction Handlers
-function onPointerMove(event) {
-  const rect = viewer.getBoundingClientRect()
-  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
-}
-
-function onClick(event) {
-  if (hoveredObject) {
-    const cableName = hoveredObject.name
-    const brokenCableName = cableName + '_d'
-    const brokenCable = scene.getObjectByName(brokenCableName)
-
-    if (brokenCable) {
-      // Restore material before hiding
-      if (originalMaterials.has(hoveredObject.uuid)) {
-        hoveredObject.material = originalMaterials.get(hoveredObject.uuid)
-        originalMaterials.delete(hoveredObject.uuid)
-      }
-
-      hoveredObject.visible = false
-      brokenCable.visible = true
-      hoveredObject = null
-    }
-  }
-}
-
-viewer.addEventListener('mousemove', onPointerMove)
-viewer.addEventListener('click', onClick)
-
-// Animation Loop
-// Animation Loop
 function animate() {
   requestAnimationFrame(animate)
-
-  // Update counter
   bombCounter.update()
-
   controls.update()
 
-  // Raycasting for hover effect
+  // Check for Time limit
+  if (isRoundActive && bombCounter.timeLeft <= 0) {
+    showResultOverlay('timeout', currentRoundIndex);
+  }
+
+  // Raycasting
   raycaster.setFromCamera(pointer, camera)
   const intersects = raycaster.intersectObjects(scene.children, true)
-
   let foundCable = false
-  for (const intersect of intersects) {
-    const object = intersect.object
-    // Check if it's a visible cable and NOT a broken one
-    if (object.visible && object.name.startsWith('cable') && !object.name.endsWith('_d')) {
-      foundCable = true
-      viewer.style.cursor = 'pointer'
 
-      if (hoveredObject !== object) {
-        // Restore previous hovered object
-        if (hoveredObject && originalMaterials.has(hoveredObject.uuid)) {
-          hoveredObject.material = originalMaterials.get(hoveredObject.uuid)
-          originalMaterials.delete(hoveredObject.uuid)
+  if (isRoundActive) {
+    for (const intersect of intersects) {
+      const object = intersect.object
+      if (object.visible && object.name.startsWith('cable') && !object.name.endsWith('_d')) {
+        foundCable = true
+        viewer.style.cursor = 'pointer'
+        if (hoveredObject !== object) {
+          if (hoveredObject && originalMaterials.has(hoveredObject.uuid)) {
+            hoveredObject.material = originalMaterials.get(hoveredObject.uuid)
+            originalMaterials.delete(hoveredObject.uuid)
+          }
+          hoveredObject = object
+          originalMaterials.set(object.uuid, object.material)
+          const highlightMaterial = object.material.clone()
+          highlightMaterial.emissive.setHex(0xaaaaaa)
+          highlightMaterial.emissiveIntensity = 0.5
+          object.material = highlightMaterial
         }
-
-        hoveredObject = object
-
-        // Store original material
-        originalMaterials.set(object.uuid, object.material)
-
-        // Apply highlight
-        const highlightMaterial = object.material.clone()
-        highlightMaterial.emissive.setHex(0xaaaaaa)
-        highlightMaterial.emissiveIntensity = 0.5
-        object.material = highlightMaterial
+        break
       }
-      break // Only highlight the first/closest cable
     }
   }
 
-  // If no cable hit, reset hovered object
   if (!foundCable) {
     viewer.style.cursor = 'default'
     if (hoveredObject) {
@@ -259,5 +368,4 @@ function animate() {
 
   renderer.render(scene, camera)
 }
-
 animate()
