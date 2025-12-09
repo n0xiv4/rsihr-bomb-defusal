@@ -20,8 +20,19 @@ export class BombCounter {
     return this.texture;
   }
 
+  reset(duration = 40.00) {
+    this.timeLeft = duration;
+    this.lastTime = Date.now();
+    this.isRunning = true;
+    this.draw();
+  }
+
   update() {
-    if (!this.isRunning) return;
+    if (!this.isRunning) {
+      // Keep lastTime updated so we don't have a huge jump when we start
+      this.lastTime = Date.now();
+      return;
+    }
 
     const now = Date.now();
     const dt = (now - this.lastTime) / 1000;
