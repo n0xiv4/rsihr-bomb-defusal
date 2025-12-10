@@ -1,13 +1,160 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bomb Viewer</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bomb Defusal Experiment - Admin Console</title>
+  <style>
+    :root {
+      --bg-color: #1a1a1a;
+      --card-bg: #2a2a2a;
+      --text-color: #e0e0e0;
+      --primary-color: #ff4757;
+      --secondary-color: #2ed573;
+      --accent-color: #5352ed;
+      --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-family);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 3rem 1rem;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    header p {
+      color: #888;
+      font-size: 1.1rem;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      width: 100%;
+      max-width: 1000px;
+      padding: 0 1rem 3rem;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      border-color: #444;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #fff;
+    }
+
+    .condition-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+
+    .tag-a { background-color: rgba(255, 71, 87, 0.2); color: var(--primary-color); }
+    .tag-b { background-color: rgba(83, 82, 237, 0.2); color: var(--accent-color); }
+
+    .btn {
+      margin-top: auto;
+      background-color: #333;
+      color: white;
+      text-decoration: none;
+      padding: 0.75rem 2rem;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+      border: 1px solid #444;
+      width: 80%;
+    }
+
+    .btn:hover {
+      background-color: #444;
+    }
+
+    .btn-a:hover { background-color: var(--primary-color); border-color: var(--primary-color); }
+    .btn-b:hover { background-color: var(--accent-color); border-color: var(--accent-color); }
+
+    footer {
+      margin-top: auto;
+      padding: 2rem;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      width: 100%;
+      border-top: 1px solid #222;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Experiment Admin</h1>
+    <p>Human-Robot Interaction & Trust in Automated Systems</p>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <span class="condition-tag tag-a">Condition A</span>
+      <h2>Reliable LLM</h2>
+      <p>In this condition, the Dash robot is prone to failures, while the LLM analysis provides reliable, correct suggestions for the majority of the rounds.</p>
+      <p style="font-size: 0.9em; color: #888;">Focus: Trust transfer when the physical agent fails.</p>
+      <a href="/bomb.html?condition=a" class="btn btn-a">Launch Condition A</a>
+    </div>
+
+    <div class="card">
+      <span class="condition-tag tag-b">Condition B</span>
+      <h2>Reliable Robot</h2>
+      <p>In this condition, the Dash robot performs perfectly, but the LLM system is experimental and prone to providing incorrect defusal suggestions.</p>
+      <p style="font-size: 0.9em; color: #888;">Focus: Overreliance on digital intelligence.</p>
+      <a href="/bomb.html?condition=b" class="btn btn-b">Launch Condition B</a>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 IST Research Group. Local Experiment Server.</p>
+  </footer>
+
+</body>
 </html>
