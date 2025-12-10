@@ -72,17 +72,6 @@ export function initLLM({ container }) {
     return t
   }
 
-  // Start with a visible thinking demo for 5 seconds
-  const typing = createTyping()
-  messages.appendChild(typing)
-  messages.scrollTop = messages.scrollHeight
-
-  setTimeout(() => {
-    typing.remove()
-    messages.appendChild(createBubble('Done thinking — hello! I examined the 3D model mentally for a moment.', false))
-    messages.scrollTop = messages.scrollHeight
-  }, 5000)
-
   // Expose a small API on the container so other code can trigger thinking later if desired
   container.startThinking = (ms = 3000, doneMessage = 'Done thinking.') => {
     const t2 = createTyping()
@@ -108,6 +97,25 @@ export function initLLM({ container }) {
     }
     messages.appendChild(bubble)
     messages.scrollTop = messages.scrollHeight
+  }
+
+  container.clearMessages = () => {
+    messages.innerHTML = ''
+  }
+
+  let thinkingEl = null
+  container.showThinking = () => {
+    if (thinkingEl) return
+    thinkingEl = createTyping()
+    messages.appendChild(thinkingEl)
+    messages.scrollTop = messages.scrollHeight
+  }
+
+  container.hideThinking = () => {
+    if (thinkingEl) {
+      thinkingEl.remove()
+      thinkingEl = null
+    }
   }
 }
 

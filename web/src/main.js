@@ -132,6 +132,7 @@ let allRounds = [];
 let bombModel = null;
 let isRoundActive = false;
 let countdownInterval = null;
+let suggestionTimeout = null;
 
 // Load Configuration
 const urlParams = new URLSearchParams(window.location.search);
@@ -205,10 +206,6 @@ function startRound(index) {
   // Hide Overlay
   overlay.classList.remove('visible');
 
-  // Clear Chat for cleanliness per round?? No, history is good.
-  const roundLabel = index < 2 ? `TUTORIAL ${index + 1}` : `ROUND ${index - 1}`;
-  llmContainer.addMessage(`--- ${roundLabel} START ---`, "System");
-
   // Setup Cables
   const wiresToShow = roundData.wireCount;
 
@@ -227,11 +224,17 @@ function startRound(index) {
     }
   });
 
+  // Clear previous messages and show thinking
+  llmContainer.clearMessages();
+  llmContainer.showThinking();
+
   // Provide Suggestions 
-  setTimeout(() => {
+  if (suggestionTimeout) clearTimeout(suggestionTimeout);
+  suggestionTimeout = setTimeout(() => {
+    llmContainer.hideThinking();
     if (!isRoundActive) return;
     llmContainer.addMessage(`I've analyzed the module. Recommend cutting ${roundData.llmSuggestion}.`, "LLM");
-  }, 1000);
+  }, 25000);
 
   // Dash Logic: NO LONGER IN CHAT, just internal logic if visuals were needed.
   // We keep it running but silent as requested.
@@ -259,6 +262,8 @@ function showResultOverlay(result, roundIdx) {
   overlayTimerCount.textContent = seconds;
 
   if (countdownInterval) clearInterval(countdownInterval);
+  if (suggestionTimeout) clearTimeout(suggestionTimeout);
+  llmContainer.hideThinking();
 
   countdownInterval = setInterval(() => {
     seconds--;
