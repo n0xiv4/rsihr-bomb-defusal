@@ -649,10 +649,13 @@
         prevBtn.addEventListener('click', () => changeSlide(-1));
         nextBtn.addEventListener('click', () => changeSlide(1));
 
+
         // Start Game
         startButtons.forEach(btn => {
           btn.addEventListener('click', () => {
-            window.location.href = "/";
+            const params = new URLSearchParams(window.location.search);
+            const condition = params.get('condition') || 'a';
+            window.location.href = `/bomb.html?condition=${condition}`;
           });
         });
 
