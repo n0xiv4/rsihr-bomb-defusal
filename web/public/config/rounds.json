@@ -1,0 +1,41 @@
+{
+  "tutorial": [
+    {
+      "roundId": 1,
+      "wireCount": 3,
+      "correctWire": "cable2",
+      "suggestions": {
+        "a": { "llm": "cable2", "dash": "cable2" },
+        "b": { "llm": "cable2", "dash": "cable2" }
+      },
+      "description": "Tutorial 1: Simple 3-wire module."
+    },
+    {
+      "roundId": 2,
+      "wireCount": 3,
+      "correctWire": "cable1",
+      "suggestions": {
+        "a": { "llm": "cable1", "dash": "cable3" },
+        "b": { "llm": "cable3", "dash": "cable1" }
+      },
+      "description": "Tutorial 2: Sometimes suggestions differ."
+    }
+  ],
+  "rounds": [
+    { "roundId": 1, "wireCount": 4, "correctWire": "cable4", "suggestions": { "a": { "llm": "cable4", "dash": "cable2" }, "b": { "llm": "cable2", "dash": "cable4" } } },
+    { "roundId": 2, "wireCount": 4, "correctWire": "cable1", "suggestions": { "a": { "llm": "cable1", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable1" } } },
+    { "roundId": 3, "wireCount": 5, "correctWire": "cable3", "suggestions": { "a": { "llm": "cable3", "dash": "cable2" }, "b": { "llm": "cable2", "dash": "cable3" } } },
+    { "roundId": 4, "wireCount": 6, "correctWire": "cable6", "suggestions": { "a": { "llm": "cable6", "dash": "cable5" }, "b": { "llm": "cable5", "dash": "cable6" } } },
+    { "roundId": 5, "wireCount": 3, "correctWire": "cable2", "suggestions": { "a": { "llm": "cable2", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable2" } } },
+    { "roundId": 6, "wireCount": 4, "correctWire": "cable3", "suggestions": { "a": { "llm": "cable3", "dash": "cable2" }, "b": { "llm": "cable2", "dash": "cable3" } } },
+    { "roundId": 7, "wireCount": 5, "correctWire": "cable1", "suggestions": { "a": { "llm": "cable1", "dash": "cable5" }, "b": { "llm": "cable5", "dash": "cable1" } } },
+    { "roundId": 8, "wireCount": 6, "correctWire": "cable5", "suggestions": { "a": { "llm": "cable5", "dash": "cable5" }, "b": { "llm": "cable5", "dash": "cable5" } } },
+    { "roundId": 9, "wireCount": 3, "correctWire": "cable3", "suggestions": { "a": { "llm": "cable3", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable3" } } },
+    { "roundId": 10, "wireCount": 4, "correctWire": "cable2", "suggestions": { "a": { "llm": "cable2", "dash": "cable4" }, "b": { "llm": "cable4", "dash": "cable2" } } },
+    { "roundId": 11, "wireCount": 5, "correctWire": "cable4", "suggestions": { "a": { "llm": "cable4", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable4" } } },
+    { "roundId": 12, "wireCount": 6, "correctWire": "cable1", "suggestions": { "a": { "llm": "cable1", "dash": "cable3" }, "b": { "llm": "cable3", "dash": "cable1" } } },
+    { "roundId": 13, "wireCount": 3, "correctWire": "cable2", "suggestions": { "a": { "llm": "cable2", "dash": "cable2" }, "b": { "llm": "cable2", "dash": "cable2" } } },
+    { "roundId": 14, "wireCount": 4, "correctWire": "cable4", "suggestions": { "a": { "llm": "cable4", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable4" } } },
+    { "roundId": 15, "wireCount": 5, "correctWire": "cable3", "suggestions": { "a": { "llm": "cable3", "dash": "cable5" }, "b": { "llm": "cable5", "dash": "cable3" } } }
+  ]
+}

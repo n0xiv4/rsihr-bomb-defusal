@@ -138,14 +138,27 @@ let suggestionTimeout = null;
 
 // Load Configuration
 const urlParams = new URLSearchParams(window.location.search);
-const condition = urlParams.get('condition') === 'b' ? 'condition_b.json' : 'condition_a.json';
+const conditionKey = urlParams.get('condition') === 'b' ? 'b' : 'a';
 
-fetch(`/config/${condition}`)
+fetch('/config/rounds.json')
   .then(res => res.json())
   .then(config => {
     gameConfig = config;
-    allRounds = [...config.tutorial, ...config.rounds];
-    console.log(`Loaded Condition: ${config.conditionName}`);
+    gameConfig.conditionName = conditionKey === 'b' ? 'LLM Fails More' : 'Dash Fails More';
+
+    // Flatten and Process Rounds
+    const processRound = (r) => ({
+      ...r,
+      llmSuggestion: r.suggestions[conditionKey].llm,
+      dashSuggestion: r.suggestions[conditionKey].dash
+    });
+
+    allRounds = [
+      ...config.tutorial.map(processRound),
+      ...config.rounds.map(processRound)
+    ];
+
+    console.log(`Loaded Condition: ${gameConfig.conditionName}`);
     loadModel();
   })
   .catch(err => console.error("Failed to load config:", err));
@@ -257,8 +270,8 @@ function showResultOverlay(result, roundIdx, cutCableName = null) {
   // Play Sound
   playSound(isWin ? 'defused' : 'explosion');
 
-  // Log Data
-  if (gameConfig) {
+  // Log Data (Skip first 2 tutorial rounds)
+  if (gameConfig && roundIdx >= 2) {
     const roundData = allRounds[roundIdx];
     const timeTaken = 40 - bombCounter.timeLeft; // Assuming 40s start time
 
