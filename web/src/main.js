@@ -14,7 +14,7 @@ import { logRoundData } from './firebase.js'
 
 // ... (previous imports)
 
-// Scene setup
+
 // Scene setup
 const scene = new THREE.Scene()
 scene.fog = new THREE.FogExp2(0x111111, 0.02)
@@ -297,8 +297,8 @@ function onClick(event) {
     if (brokenCable) {
       // Cut Animation
       if (originalMaterials.has(hoveredObject.uuid)) {
-        hoveredObject.material = originalMaterials.get(hoveredObject.uuid);
-        originalMaterials.delete(hoveredObject.uuid);
+        hoveredObject.material = originalMaterials.get(hoveredObject.uuid);;
+        originalMaterials.delete(hoveredObject.uuid);;
       }
       hoveredObject.visible = false;
       brokenCable.visible = true;
@@ -345,6 +345,12 @@ function animate() {
   bombCounter.update()
   controls.update()
 
+  // Check for Time limit
+  if (isRoundActive && bombCounter.timeLeft <= 0) {
+    showResultOverlay('timeout', currentRoundIndex);
+  }
+
+  // Raycasting
   // Check for Time limit
   if (isRoundActive && bombCounter.timeLeft <= 0) {
     const roundData = allRounds[currentRoundIndex];
