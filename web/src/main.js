@@ -10,6 +10,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 
 import { BombCounter } from './counter.js'
 import { initLLM } from './llm.js'
+import { logRoundData } from './firebase.js'
 
 // ... (previous imports)
 
@@ -134,6 +135,7 @@ let bombModel = null;
 let isRoundActive = false;
 let countdownInterval = null;
 let suggestionTimeout = null;
+let roundStartTime = 0;
 
 // Load Configuration
 const urlParams = new URLSearchParams(window.location.search);
@@ -200,6 +202,7 @@ function startRound(index) {
   currentRoundIndex = index;
   const roundData = allRounds[index];
   isRoundActive = true;
+  roundStartTime = Date.now();
 
   // Timer: 40s (handled by default in reset)
   bombCounter.reset();
@@ -304,6 +307,19 @@ function onClick(event) {
       // Validate Cut
       const roundData = allRounds[currentRoundIndex];
       const isCorrect = cableName === roundData.correctWire;
+      const duration = Date.now() - roundStartTime;
+
+      // Log Data
+      logRoundData({
+        condition: gameConfig.conditionName,
+        roundId: roundData.roundId,
+        result: isCorrect ? 'win' : 'loss',
+        wireCut: cableName,
+        correctWire: roundData.correctWire,
+        llmSuggestion: roundData.llmSuggestion,
+        dashSuggestion: roundData.dashSuggestion,
+        durationMs: duration
+      });
 
       showResultOverlay(isCorrect ? 'win' : 'loss', currentRoundIndex);
     }
@@ -331,6 +347,17 @@ function animate() {
 
   // Check for Time limit
   if (isRoundActive && bombCounter.timeLeft <= 0) {
+    const roundData = allRounds[currentRoundIndex];
+    logRoundData({
+      condition: gameConfig.conditionName,
+      roundId: roundData.roundId,
+      result: 'timeout',
+      wireCut: null,
+      correctWire: roundData.correctWire,
+      llmSuggestion: roundData.llmSuggestion,
+      dashSuggestion: roundData.dashSuggestion,
+      durationMs: 40000 // Max time
+    });
     showResultOverlay('timeout', currentRoundIndex);
   }
 
