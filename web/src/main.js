@@ -206,8 +206,7 @@ function loadModel() {
 
 function startRound(index) {
   if (index >= allRounds.length) {
-    llmContainer.addMessage("Simulation Complete. Thank you for participating!", "System");
-    isRoundActive = false;
+    window.location.href = '/thanks.html';
     return;
   }
 
