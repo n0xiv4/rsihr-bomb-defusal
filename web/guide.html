@@ -109,6 +109,48 @@
         letter-spacing: 2px;
       }
 
+      /* IST ID Form */
+      .ist-id-container {
+        margin-bottom: 20px;
+        text-align: center;
+      }
+      
+      .ist-id-container label {
+        display: block;
+        margin-bottom: 10px;
+        color: #e74c3c;
+        font-weight: bold;
+        font-size: 1.1em;
+      }
+    
+      .ist-id-input {
+        display: block !important;
+        background: #333 !important;
+        border: 2px solid #555 !important;
+        padding: 10px 15px !important;
+        color: white !important;
+        font-family: inherit;
+        font-size: 1.1em !important;
+        border-radius: 4px;
+        width: 100% !important;
+        max-width: 300px !important;
+        height: 50px !important;
+        margin: 0 auto !important;
+        text-align: center;
+        box-sizing: border-box !important;
+        opacity: 1 !important;
+      }
+
+      .ist-id-input:focus {
+        outline: none;
+        border-color: #e74c3c !important;
+      }
+      
+      /* Override any invalid styling */
+      .ist-id-input:invalid {
+        box-shadow: none;
+      }
+
       /* Consent Form */
       .consent-form {
         text-align: left;
@@ -350,6 +392,10 @@
             </div>
             
             <div class="consent-check">
+              <div class="ist-id-container">
+                <label for="ist-id-pt">Número de Estudante / IST ID:</label>
+                <input type="text" id="ist-id-pt" class="ist-id-input" placeholder="e.g. ist1100000" required>
+              </div>
               <label>
                 <input type="checkbox" class="consent-checkbox"> 
                 <strong>Li e compreendo a informação acima.</strong>
@@ -492,6 +538,10 @@
             </div>
             
             <div class="consent-check">
+              <div class="ist-id-container">
+                <label for="ist-id-en">Student Number / IST ID:</label>
+                <input type="text" id="ist-id-en" class="ist-id-input" placeholder="e.g. ist1105901" required>
+              </div>
               <label>
                 <input type="checkbox" class="consent-checkbox"> 
                 <strong>I have read and understand the above information.</strong>
@@ -621,6 +671,7 @@
       const nextBtn = document.getElementById('next-slide');
       const slideIndicator = document.getElementById('slide-indicator');
       const checkboxes = document.querySelectorAll('.consent-checkbox');
+      const idInputs = document.querySelectorAll('.ist-id-input');
       const startButtons = document.querySelectorAll('.start-game-btn');
       const progressFill = document.getElementById('progress');
 
@@ -653,9 +704,23 @@
         // Start Game
         startButtons.forEach(btn => {
           btn.addEventListener('click', () => {
+             // Get ID from the active input (or just take the one that has a value)
+            let istId = document.getElementById('ist-id-pt').value.trim() || document.getElementById('ist-id-en').value.trim();
+            if (!istId) istId = 'unknown'; // Should be prevented by validation
+
             const params = new URLSearchParams(window.location.search);
             const condition = params.get('condition') || 'a';
-            window.location.href = `/bomb.html?condition=${condition}`;
+            window.location.href = `/bomb.html?condition=${condition}&participantId=${encodeURIComponent(istId)}`;
+          });
+        });
+
+        // Input Validation (ID inputs)
+        idInputs.forEach(input => {
+          input.addEventListener('input', (e) => {
+             // Sync inputs
+             const val = e.target.value;
+             idInputs.forEach(i => i.value = val);
+             updateNavigationState();
           });
         });
 
@@ -730,10 +795,14 @@
         } else {
           nextBtn.style.display = 'inline-block';
           
+          
           // Special Case: Slide 1 (Consent)
           if (currentSlideIndex === 0) {
-            const isChecked = document.querySelector(`.content[data-lang="${currentLang}"] .consent-checkbox`)?.checked;
-            nextBtn.disabled = !isChecked;
+            const currentWrapper = document.querySelector(`.content[data-lang="${currentLang}"]`);
+            const isChecked = currentWrapper.querySelector('.consent-checkbox')?.checked;
+            const hasId = currentWrapper.querySelector('.ist-id-input')?.value.trim().length > 0;
+            
+            nextBtn.disabled = !(isChecked && hasId);
           } else {
             nextBtn.disabled = false;
           }

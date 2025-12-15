@@ -10,6 +10,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 
 import { BombCounter } from './counter.js'
 import { initLLM } from './llm.js'
+import { logRoundData } from './firebase.js'
 
 // ... (previous imports)
 
@@ -241,7 +242,7 @@ function startRound(index) {
   // We keep it running but silent as requested.
 }
 
-function showResultOverlay(result, roundIdx) {
+function showResultOverlay(result, roundIdx, cutCableName = null) {
   isRoundActive = false;
   bombCounter.isRunning = false;
 
@@ -255,6 +256,25 @@ function showResultOverlay(result, roundIdx) {
 
   // Play Sound
   playSound(isWin ? 'defused' : 'explosion');
+
+  // Log Data
+  if (gameConfig) {
+    const roundData = allRounds[roundIdx];
+    const timeTaken = 40 - bombCounter.timeLeft; // Assuming 40s start time
+
+    const sessionData = {
+      roundIndex: roundIdx,
+      condition: gameConfig.conditionName || 'unknown',
+      correctCable: roundData.correctWire,
+      cableChosen: cutCableName,
+      outcome: result, // 'win', 'loss', 'timeout'
+      timeTaken: parseFloat(timeTaken.toFixed(3)),
+      llmSuggestion: roundData.llmSuggestion,
+      dashSuggestion: roundData.dashSuggestion || 'none'
+    };
+
+    logRoundData(sessionData);
+  }
 
   overlay.classList.add('visible');
 
@@ -305,7 +325,7 @@ function onClick(event) {
       const roundData = allRounds[currentRoundIndex];
       const isCorrect = cableName === roundData.correctWire;
 
-      showResultOverlay(isCorrect ? 'win' : 'loss', currentRoundIndex);
+      showResultOverlay(isCorrect ? 'win' : 'loss', currentRoundIndex, cableName);
     }
   }
 }
@@ -331,7 +351,7 @@ function animate() {
 
   // Check for Time limit
   if (isRoundActive && bombCounter.timeLeft <= 0) {
-    showResultOverlay('timeout', currentRoundIndex);
+    showResultOverlay('timeout', currentRoundIndex, null);
   }
 
   // Raycasting
