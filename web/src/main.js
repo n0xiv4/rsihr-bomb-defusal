@@ -132,9 +132,12 @@ let gameConfig = null;
 let currentRoundIndex = 0;
 let allRounds = [];
 let bombModel = null;
+let materialCache = {}; // Cache all materials by name for easy lookup
 let isRoundActive = false;
 let countdownInterval = null;
 let suggestionTimeout = null;
+let currentCableMapping = {}; // Maps logical cable (cable1, cable2) to physical position
+let currentColorMapping = {}; // Maps physical cable position to color
 
 // Load Configuration
 const urlParams = new URLSearchParams(window.location.search);
@@ -166,8 +169,27 @@ fetch('/config/rounds.json')
 
 function loadModel() {
   const loader = new GLTFLoader()
-  loader.load('/bomb_test.glb', (gltf) => {
+  loader.load('/bomb.glb', (gltf) => {
     bombModel = gltf.scene;
+
+    // Cache all materials by name for easy lookup
+    materialCache = {};
+    console.log('=== AVAILABLE MATERIALS IN GLB ===');
+    const availableMaterials = new Set();
+    bombModel.traverse((obj) => {
+      if (obj.isMesh && obj.material) {
+        const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+        materials.forEach(mat => {
+          if (mat && mat.name) {
+            availableMaterials.add(mat.name);
+            materialCache[mat.name] = mat; // Store in cache
+          }
+        });
+      }
+    });
+    console.log('Materials:', Array.from(availableMaterials).sort());
+    console.log('Material cache created with', Object.keys(materialCache).length, 'materials');
+    console.log('=================================');
 
     // Setup Counter Mesh
     const displayMesh = bombModel.getObjectByName('counter');
@@ -222,14 +244,96 @@ function startRound(index) {
 
   // Setup Cables
   const wiresToShow = roundData.wireCount;
+  const wireColors = roundData.wireColors || [];
+  const keyboardType = roundData.keyboardType || 'normal';
+
+  // Update body material based on keyboard type
+  const bodyMaterialName = keyboardType === 'roman' ? 'c4_roman_variant' : 'c4_normal_variant';
+  console.log(`Looking for body material: ${bodyMaterialName}`);
+  
+  const bodyMesh = bombModel.getObjectByName('body');
+  if (bodyMesh && bodyMesh.isMesh) {
+    // Use material cache for instant lookup
+    const foundBodyMaterial = materialCache[bodyMaterialName];
+    
+    if (foundBodyMaterial) {
+      bodyMesh.material = foundBodyMaterial;
+      console.log(`✓ Applied body material: ${bodyMaterialName}`);
+    } else {
+      console.error(`❌ Body material not found in GLB: "${bodyMaterialName}"`);
+      console.error(`⚠️  The GLB file is missing this material!`);
+      console.error(`📝 You need to add "${bodyMaterialName}" to your GLB file in Blender`);
+      // Log all available materials for debugging
+      const availableMaterials = new Set();
+      bombModel.traverse((obj) => {
+        if (obj.isMesh && obj.material) {
+          const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+          materials.forEach(mat => {
+            if (mat && mat.name) availableMaterials.add(mat.name);
+          });
+        }
+      });
+      console.log('Available body materials:', Array.from(availableMaterials).filter(m => m.includes('c4')));
+      console.warn('⚠️  Keeping previous material as fallback');
+    }
+  } else {
+    console.warn('Body mesh not found');
+  }
+
+  // Use sequential cable positions (cable1, cable2, cable3, etc.) based on wireCount
+  // No random selection - always use the first N cables
+  const selectedPositions = [];
+  for (let i = 1; i <= wiresToShow && i <= 6; i++) {
+    selectedPositions.push(i);
+  }
+
+  // Create mapping: logical cable (cable1, cable2, etc.) -> physical position
+  // and also colorIndex -> cablePosition
+  currentCableMapping = {};
+  currentColorMapping = {};
+  for (let i = 0; i < wireColors.length && i < selectedPositions.length; i++) {
+    const cablePos = selectedPositions[i];
+    const color = wireColors[i];
+    const logicalCable = `cable${i + 1}`;
+    
+    currentCableMapping[logicalCable] = `cable${cablePos}`;
+    currentColorMapping[cablePos] = color;
+  }
+  
+  console.log(`Round setup - wireCount: ${wiresToShow}, wireColors:`, wireColors);
+  console.log('Selected positions:', selectedPositions);
+  console.log('Color mapping:', currentColorMapping);
 
   bombModel.traverse((child) => {
     if (child.name.startsWith('cable') && !child.name.endsWith('_d')) {
       const num = parseInt(child.name.replace('cable', ''));
       if (!isNaN(num)) {
-        child.visible = num <= wiresToShow;
+        // Check if this cable position should be visible
+        const shouldShow = selectedPositions.includes(num);
+        child.visible = shouldShow;
+        
+        if (shouldShow && currentColorMapping[num]) {
+          const color = currentColorMapping[num];
+          // Determine material name: color_cable for cable1-4, color_cable2 for cable5-6
+          const materialSuffix = (num >= 5) ? '_cable2' : '_cable';
+          const materialName = color + materialSuffix;
+          
+          console.log(`Cable${num}: Looking for material "${materialName}" for color "${color}"`);
+          
+          // Use material cache for instant lookup
+          const foundMaterial = materialCache[materialName];
+          
+          if (foundMaterial) {
+            child.material = foundMaterial;
+            console.log(`Cable${num}: ✓ Applied material "${materialName}"`);
+          } else {
+            console.error(`Cable${num}: ✗ Material NOT FOUND: "${materialName}"`);
+            console.log('Available cable materials:', Object.keys(materialCache).filter(m => m.includes('cable')).sort());
+          }
+        }
+        
         if (originalMaterials.has(child.uuid)) {
-          child.material = originalMaterials.get(child.uuid);
+          originalMaterials.delete(child.uuid);
         }
       }
       const brokenName = child.name + '_d';
@@ -247,8 +351,16 @@ function startRound(index) {
   suggestionTimeout = setTimeout(() => {
     llmContainer.hideThinking();
     if (!isRoundActive) return;
-    llmContainer.addMessage(`I've analyzed the module. Recommend cutting ${roundData.llmSuggestion}.`, "LLM");
-  }, 25000);
+    
+    // Map logical suggestion to physical cable
+    const llmPhysicalSuggestion = currentCableMapping[roundData.llmSuggestion] || roundData.llmSuggestion;
+    
+    // Get the color name for the suggested cable
+    const physicalCableNum = parseInt(llmPhysicalSuggestion.replace('cable', ''));
+    const colorName = currentColorMapping[physicalCableNum] || 'unknown';
+    
+    llmContainer.addMessage(`I've analyzed the module. Recommend cutting ${colorName}.`, "LLM");
+  }, 12000);
 
   // Dash Logic: NO LONGER IN CHAT, just internal logic if visuals were needed.
   // We keep it running but silent as requested.
@@ -319,7 +431,7 @@ function onClick(event) {
   if (!isRoundActive || !gameConfig) return;
 
   if (hoveredObject) {
-    const cableName = hoveredObject.name;
+    const cableName = hoveredObject.name; // Physical cable name (e.g., "cable3")
     const brokenCableName = cableName + '_d';
     const brokenCable = scene.getObjectByName(brokenCableName);
 
@@ -335,7 +447,9 @@ function onClick(event) {
 
       // Validate Cut
       const roundData = allRounds[currentRoundIndex];
-      const isCorrect = cableName === roundData.correctWire;
+      // Map the logical correctWire to physical cable position
+      const correctPhysicalCable = currentCableMapping[roundData.correctWire];
+      const isCorrect = cableName === correctPhysicalCable;
 
       showResultOverlay(isCorrect ? 'win' : 'loss', currentRoundIndex, cableName);
     }
