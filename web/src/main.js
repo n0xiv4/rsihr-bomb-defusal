@@ -34,21 +34,8 @@ camera.lookAt(0, 0, 0)
 const listener = new THREE.AudioListener()
 camera.add(listener)
 
-// Global Audio source
-const sound = new THREE.Audio(listener)
-const audioLoader = new THREE.AudioLoader()
-audioLoader.load('/audio/csgo_main_theme.mp3', function (buffer) {
-  sound.setBuffer(buffer)
-  sound.setLoop(true)
-  sound.setVolume(0.05)
-  if (listener.context.state === 'suspended') {
-    const resumeAudio = () => { listener.context.resume().then(() => sound.play()); window.removeEventListener('click', resumeAudio); window.removeEventListener('keydown', resumeAudio); }
-    window.addEventListener('click', resumeAudio)
-    window.addEventListener('keydown', resumeAudio)
-  } else {
-    sound.play()
-  }
-})
+// Note: Theme audio is played only on the guide page. Here we keep an audio listener
+// for in-game SFX only.
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -110,21 +97,77 @@ const bombCounter = new BombCounter()
 const soundContext = listener.context;
 const audioBuffers = {
   defused: null,
-  explosion: null
+  explosion: null,
+  theme: null,
+  timer: null
 };
+
+// Keep track of playing THREE.Audio instances by type so we can stop them
+const audioPlayers = new Map(); // type -> Set(THREE.Audio)
 
 // Preload SFX
 const sfxLoader = new THREE.AudioLoader();
 sfxLoader.load('/audio/defused_bomb.mp3', (buffer) => { audioBuffers.defused = buffer; });
 sfxLoader.load('/audio/bomb_explosion.mp3', (buffer) => { audioBuffers.explosion = buffer; });
+sfxLoader.load('/audio/csgo_main_theme.mp3', (buffer) => { audioBuffers.theme = buffer; });
+sfxLoader.load('/audio/bomb_time.mp3', (buffer) => { audioBuffers.timer = buffer; });
 
-function playSound(type) {
-  if (audioBuffers[type] && soundContext.state === 'running') {
+/**
+ * Play a buffered SFX and keep a reference so it can be stopped later.
+ * Returns the created THREE.Audio instance (or null if buffer missing).
+ */
+function playSound(type, opts = {}) {
+  const { volume = 0.5, loop = false } = opts;
+  const buffer = audioBuffers[type];
+  if (!buffer) return null;
+
+  const play = () => {
     const sfx = new THREE.Audio(listener);
-    sfx.setBuffer(audioBuffers[type]);
-    sfx.setVolume(0.5);
-    sfx.play();
+    sfx.setBuffer(buffer);
+    sfx.setLoop(loop);
+    sfx.setVolume(volume);
+    try { sfx.play(); } catch (e) { /* ignore play errors */ }
+
+    // Track instance
+    if (!audioPlayers.has(type)) audioPlayers.set(type, new Set());
+    audioPlayers.get(type).add(sfx);
+
+    // Remove when ended (for non-looping sounds)
+    if (!loop) {
+      const onEnded = () => {
+        try { sfx.stop(); } catch (e) {}
+        audioPlayers.get(type)?.delete(sfx);
+      };
+      // There's no ended event on THREE.Audio; poll state via setTimeout as fallback
+      setTimeout(onEnded, (buffer.duration || 1) * 1000 + 200);
+    }
+
+    return sfx;
+  };
+
+  if (soundContext.state === 'suspended') {
+    const resumeAndPlay = () => {
+      soundContext.resume().then(() => play()).catch(() => {});
+      window.removeEventListener('click', resumeAndPlay);
+      window.removeEventListener('keydown', resumeAndPlay);
+    };
+    window.addEventListener('click', resumeAndPlay);
+    window.addEventListener('keydown', resumeAndPlay);
+    return null;
+  } else {
+    return play();
   }
+}
+
+function stopSound(type) {
+  const set = audioPlayers.get(type);
+  if (!set) return;
+  for (const sfx of Array.from(set)) {
+    try { sfx.stop(); } catch (e) {}
+    try { sfx.disconnect && sfx.disconnect(); } catch (e) {}
+    set.delete(sfx);
+  }
+  audioPlayers.delete(type);
 }
 
 // --- GAME STATE MANAGEMENT ---
@@ -216,6 +259,9 @@ function startRound(index) {
 
   // Timer: 40s (handled by default in reset)
   bombCounter.reset();
+  // Ensure any previous timer SFX is stopped, then play round-start looping timer sound
+  stopSound('timer');
+  playSound('timer', { volume: 0.6, loop: true });
 
   // Hide Overlay
   overlay.classList.remove('visible');
@@ -267,6 +313,8 @@ function showResultOverlay(result, roundIdx, cutCableName = null) {
   overlayRound.textContent = `${roundLabel} Complete`;
 
   // Play Sound
+  // Stop the round timer sound (if playing) then play result SFX
+  stopSound('timer');
   playSound(isWin ? 'defused' : 'explosion');
 
   // Log Data (Skip first 2 tutorial rounds)

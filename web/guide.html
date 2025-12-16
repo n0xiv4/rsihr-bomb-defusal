@@ -812,5 +812,32 @@
       // Start
       init();
     </script>
+  
+    <script>
+      // Play the guide theme on the guide page only.
+      (function() {
+        try {
+          const theme = new Audio('/audio/csgo_main_theme.mp3');
+          theme.loop = true;
+          theme.volume = 0.05;
+
+          const tryPlay = () => {
+            theme.play().catch(() => {
+              // Will retry after user gesture
+            });
+          };
+
+          // Try to play immediately (may be blocked by autoplay policies)
+          tryPlay();
+
+          // Ensure it starts on first user gesture if blocked
+          const resume = () => { tryPlay(); window.removeEventListener('click', resume); window.removeEventListener('keydown', resume); };
+          window.addEventListener('click', resume);
+          window.addEventListener('keydown', resume);
+        } catch (e) {
+          // ignore if audio cannot be created
+        }
+      })();
+    </script>
   </body>
 </html>
