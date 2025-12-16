@@ -114,6 +114,18 @@ class DashRobot:
         """Set all lights on the robot to the specified color."""
         actions.turn_all_lights(self.morse_robot, color)
     
+    def celebrate(self):
+        """
+        Make the robot celebrate with movements and sounds.
+        """
+        actions.celebrate(self.morse_robot)
+
+    def feel_sad(self):
+        """
+        Make the robot express sadness.
+        """
+        actions.feel_sad(self.morse_robot)
+
     def view_movement_history(self):
         """Display the current movement stack."""
         self.movement_stack.view_stack()
