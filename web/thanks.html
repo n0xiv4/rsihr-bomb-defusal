@@ -1,45 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You - Bomb Defusal Experiment</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1a1a1a;
-            color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            text-align: center;
-        }
-        .container {
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            color: #4ade80; /* Green-400 */
-        }
-        p {
-            font-size: 1.2rem;
-            color: #9ca3af;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Experiment Complete</h1>
-        <p>Thank you for your participation.</p>
-        <p>You may now close this tab.</p>
-    </div>
-</body>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Thank You — Bomb Defusal Experiment</title>
+        <meta name="description" content="Thank you page for the bomb defusal experiment." />
+        <style>
+            :root{
+                --bg1: #0f1720; /* deep slate */
+                --bg2: #071028; /* darker */
+                --card: rgba(255,255,255,0.04);
+                --muted: #9aa5b1;
+                --accent: #34d399; /* green */
+                --accent-2: #60a5fa; /* blue */
+            }
+            *{box-sizing:border-box}
+            html,body{height:100%}
+            body{
+                margin:0;
+                font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+                background: radial-gradient(1000px 600px at 10% 10%, rgba(96,165,250,0.06), transparent),
+                                        radial-gradient(800px 500px at 90% 90%, rgba(52,211,153,0.04), transparent),
+                                        linear-gradient(180deg,var(--bg1),var(--bg2));
+                color:#e6eef6;
+                -webkit-font-smoothing:antialiased;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding:32px;
+            }
+
+            .card{
+                width:100%;
+                max-width:720px;
+                background:var(--card);
+                border-radius:14px;
+                padding:28px 28px 20px 28px;
+                box-shadow:0 10px 30px rgba(2,6,23,0.6);
+                text-align:center;
+                position:relative;
+                overflow:visible;
+            }
+
+            .check{
+                width:96px;height:96px;border-radius:50%;
+                background:linear-gradient(135deg,var(--accent),#10b981);
+                margin: -72px auto 16px auto; /* float above */
+                display:flex;align-items:center;justify-content:center;
+                box-shadow:0 8px 24px rgba(16,185,129,0.18), inset 0 -6px 18px rgba(255,255,255,0.06);
+                transform:scale(0);animation:pop 520ms cubic-bezier(.2,.9,.2,1) forwards;
+            }
+
+            @keyframes pop{to{transform:scale(1)}}
+
+            .check svg{width:56px;height:56px;filter:drop-shadow(0 6px 12px rgba(16,185,129,0.18))}
+
+            h1{font-size:1.75rem;margin:6px 0 6px;color:#e6fff3}
+            p.lead{color:var(--muted);margin:0 0 14px;font-size:1.02rem}
+
+            .actions{display:flex;gap:12px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+            .btn{
+                border:0;padding:12px 18px;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.98rem;
+            }
+            .btn-primary{background:linear-gradient(90deg,var(--accent),#10b981);color:#042018}
+            .btn-light{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+
+            .hint{margin-top:12px;color:var(--muted);font-size:0.94rem}
+
+            /* Confetti pieces (small, performant) */
+            .confetti-piece{
+                position:absolute;left:50%;top:6%;width:10px;height:14px;opacity:0;pointer-events:none;transform-origin:center;
+                will-change:transform,opacity;z-index:2
+            }
+
+            /* small variations via nth-child */
+            .confetti-piece i{display:block;width:100%;height:100%;border-radius:2px}
+            .confetti-piece:nth-child(1){transform:translateX(-180px);animation:fall 1600ms 100ms cubic-bezier(.15,.8,.4,1) forwards}
+            .confetti-piece:nth-child(2){transform:translateX(-120px);animation:fall 1500ms 200ms cubic-bezier(.15,.8,.4,1) forwards}
+            .confetti-piece:nth-child(3){transform:translateX(-60px);animation:fall 1400ms 260ms cubic-bezier(.15,.8,.4,1) forwards}
+            .confetti-piece:nth-child(4){transform:translateX(0px);animation:fall 1500ms 180ms cubic-bezier(.15,.8,.4,1) forwards}
+            .confetti-piece:nth-child(5){transform:translateX(60px);animation:fall 1700ms 240ms cubic-bezier(.15,.8,.4,1) forwards}
+            .confetti-piece:nth-child(6){transform:translateX(120px);animation:fall 1550ms 320ms cubic-bezier(.15,.8,.4,1) forwards}
+
+            @keyframes fall{
+                0%{opacity:0;transform:translateY(0) rotate(0) scale(1)}
+                10%{opacity:1}
+                100%{opacity:1;transform:translateY(260px) rotate(420deg) scale(0.95)}
+            }
+
+            /* responsive */
+            @media (max-width:420px){
+                .card{padding:20px;border-radius:12px}
+                .check{width:80px;height:80px;margin-top:-56px}
+            }
+        </style>
+    </head>
+    <body>
+        <main class="card" role="main" aria-labelledby="thanks-title">
+            <!-- confetti pieces (colored bars) -->
+            <div class="confetti-piece" style="left:22%;top:0"><i style="background:#ffb86b"></i></div>
+            <div class="confetti-piece" style="left:34%;top:0"><i style="background:#60a5fa"></i></div>
+            <div class="confetti-piece" style="left:46%;top:0"><i style="background:#f472b6"></i></div>
+            <div class="confetti-piece" style="left:58%;top:0"><i style="background:#34d399"></i></div>
+            <div class="confetti-piece" style="left:70%;top:0"><i style="background:#f59e0b"></i></div>
+            <div class="confetti-piece" style="left:82%;top:0"><i style="background:#60a5fa"></i></div>
+
+            <div class="check" aria-hidden="true">
+                <!-- animated check -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M20 6L9 17l-5-5" />
+                </svg>
+            </div>
+
+            <h1 id="thanks-title">Experiment Complete — Thank you!</h1>
+            <p class="lead">We appreciate your time and help. Your responses have been recorded successfully.</p>
+
+            
+        </main>
+
+        <script>
+            // Button actions
+            document.getElementById('close-btn').addEventListener('click', function(){
+                // try to close the window; may be blocked if not opened by script
+                window.close();
+                // if still open, give visual feedback
+                this.textContent = 'Attempting to close...';
+                setTimeout(()=>{ this.textContent = 'You may now close this tab'; }, 1200);
+            });
+
+            // simple auto-close after a few seconds (optional): only run if opened by script
+            setTimeout(()=>{
+                try{ window.close(); }catch(e){}
+            }, 12_000);
+        </script>
+    </body>
 </html>
