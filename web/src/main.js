@@ -12,6 +12,17 @@ import { BombCounter } from './counter.js'
 import { initLLM } from './llm.js'
 import { logRoundData } from './firebase.js'
 
+// Dash Server URL
+const DASH_SERVER = 'http://localhost:5000';
+
+function callDash(endpoint, body = {}) {
+  fetch(`${DASH_SERVER}/${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).catch(err => console.warn(`Dash ${endpoint} failed:`, err)); // Warn but don't break game
+}
+
 // ... (previous imports)
 
 // Scene setup
@@ -135,7 +146,7 @@ function playSound(type, opts = {}) {
     // Remove when ended (for non-looping sounds)
     if (!loop) {
       const onEnded = () => {
-        try { sfx.stop(); } catch (e) {}
+        try { sfx.stop(); } catch (e) { }
         audioPlayers.get(type)?.delete(sfx);
       };
       // There's no ended event on THREE.Audio; poll state via setTimeout as fallback
@@ -147,7 +158,7 @@ function playSound(type, opts = {}) {
 
   if (soundContext.state === 'suspended') {
     const resumeAndPlay = () => {
-      soundContext.resume().then(() => play()).catch(() => {});
+      soundContext.resume().then(() => play()).catch(() => { });
       window.removeEventListener('click', resumeAndPlay);
       window.removeEventListener('keydown', resumeAndPlay);
     };
@@ -163,8 +174,8 @@ function stopSound(type) {
   const set = audioPlayers.get(type);
   if (!set) return;
   for (const sfx of Array.from(set)) {
-    try { sfx.stop(); } catch (e) {}
-    try { sfx.disconnect && sfx.disconnect(); } catch (e) {}
+    try { sfx.stop(); } catch (e) { }
+    try { sfx.disconnect && sfx.disconnect(); } catch (e) { }
     set.delete(sfx);
   }
   audioPlayers.delete(type);
@@ -296,12 +307,12 @@ function startRound(index) {
   // Update body material based on keyboard type
   const bodyMaterialName = keyboardType === 'roman' ? 'c4_roman_variant' : 'c4_normal_variant';
   console.log(`Looking for body material: ${bodyMaterialName}`);
-  
+
   const bodyMesh = bombModel.getObjectByName('body');
   if (bodyMesh && bodyMesh.isMesh) {
     // Use material cache for instant lookup
     const foundBodyMaterial = materialCache[bodyMaterialName];
-    
+
     if (foundBodyMaterial) {
       bodyMesh.material = foundBodyMaterial;
       console.log(`✓ Applied body material: ${bodyMaterialName}`);
@@ -341,11 +352,11 @@ function startRound(index) {
     const cablePos = selectedPositions[i];
     const color = wireColors[i];
     const logicalCable = `cable${i + 1}`;
-    
+
     currentCableMapping[logicalCable] = `cable${cablePos}`;
     currentColorMapping[cablePos] = color;
   }
-  
+
   console.log(`Round setup - wireCount: ${wiresToShow}, wireColors:`, wireColors);
   console.log('Selected positions:', selectedPositions);
   console.log('Color mapping:', currentColorMapping);
@@ -357,18 +368,18 @@ function startRound(index) {
         // Check if this cable position should be visible
         const shouldShow = selectedPositions.includes(num);
         child.visible = shouldShow;
-        
+
         if (shouldShow && currentColorMapping[num]) {
           const color = currentColorMapping[num];
           // Determine material name: color_cable for cable1-4, color_cable2 for cable5-6
           const materialSuffix = (num >= 5) ? '_cable2' : '_cable';
           const materialName = color + materialSuffix;
-          
+
           console.log(`Cable${num}: Looking for material "${materialName}" for color "${color}"`);
-          
+
           // Use material cache for instant lookup
           const foundMaterial = materialCache[materialName];
-          
+
           if (foundMaterial) {
             child.material = foundMaterial;
             console.log(`Cable${num}: ✓ Applied material "${materialName}"`);
@@ -377,7 +388,7 @@ function startRound(index) {
             console.log('Available cable materials:', Object.keys(materialCache).filter(m => m.includes('cable')).sort());
           }
         }
-        
+
         if (originalMaterials.has(child.uuid)) {
           originalMaterials.delete(child.uuid);
         }
@@ -397,19 +408,39 @@ function startRound(index) {
   suggestionTimeout = setTimeout(() => {
     llmContainer.hideThinking();
     if (!isRoundActive) return;
-    
+
     // Map logical suggestion to physical cable
     const llmPhysicalSuggestion = currentCableMapping[roundData.llmSuggestion] || roundData.llmSuggestion;
-    
+
     // Get the color name for the suggested cable
     const physicalCableNum = parseInt(llmPhysicalSuggestion.replace('cable', ''));
     const colorName = currentColorMapping[physicalCableNum] || 'unknown';
-    
+
     llmContainer.addMessage(`I've analyzed the module. Recommend cutting ${colorName}.`, "LLM");
   }, 12000);
 
-  // Dash Logic: NO LONGER IN CHAT, just internal logic if visuals were needed.
-  // We keep it running but silent as requested.
+  // Dash Logic
+  callDash('think');
+
+  // Schedule Dash Suggestion (slightly delayed from LLM or same time)
+  setTimeout(() => {
+    if (!isRoundActive) return;
+
+    // Map logical suggestion to physical cable for Dash (who points/moves)
+    const dashLogicalSuggestion = roundData.dashSuggestion;
+    const dashPhysicalSuggestion = currentCableMapping[dashLogicalSuggestion];
+
+    // Get color for Dash
+    if (dashPhysicalSuggestion) {
+      const dashCableNum = parseInt(dashPhysicalSuggestion.replace('cable', ''));
+      const dashColor = currentColorMapping[dashCableNum];
+
+      console.log(`Dash Suggests: ${dashLogicalSuggestion} -> ${dashPhysicalSuggestion} (${dashColor})`);
+      if (dashColor) {
+        callDash('suggest', { color: dashColor });
+      }
+    }
+  }, 10000); // 10 seconds in
 }
 
 function showResultOverlay(result, roundIdx, cutCableName = null) {
@@ -425,9 +456,27 @@ function showResultOverlay(result, roundIdx, cutCableName = null) {
   overlayRound.textContent = `${roundLabel} Complete`;
 
   // Play Sound
-  // Stop the round timer sound (if playing) then play result SFX
   stopSound('timer');
   playSound(isWin ? 'defused' : 'explosion');
+
+  // Trigger Dash Reaction
+  if (gameConfig && roundIdx >= 0) { // React even in tutorial? User didn't specify, assuming yes or from round 1.
+    const roundData = allRounds[roundIdx];
+    const correctWire = roundData.correctWire;
+    const dashSuggestion = roundData.dashSuggestion;
+
+    // "se ele errou/a bomba explodiu feel_sad"
+    // "se deu a resposta certa e a pessoa escolheu essa, celebrate"
+
+    const dashWasRight = dashSuggestion === correctWire;
+
+    if (isWin && dashWasRight) {
+      callDash('celebrate');
+    } else {
+      // Exploded OR Dash gave wrong advice
+      callDash('sad');
+    }
+  }
 
   // Log Data (Skip first 2 tutorial rounds)
   if (gameConfig && roundIdx >= 2) {
