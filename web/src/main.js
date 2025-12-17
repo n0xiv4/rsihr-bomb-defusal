@@ -11,6 +11,7 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import { BombCounter } from './counter.js'
 import { initLLM } from './llm.js'
 import { logRoundData } from './firebase.js'
+import { i18n } from './i18n.js'
 
 // Dash Server URL
 const DASH_SERVER = 'http://localhost:5000';
@@ -90,7 +91,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio)
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 0.5
+renderer.toneMappingExposure = 0.2
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
@@ -429,10 +430,21 @@ function startRound(index) {
         if (originalMaterials.has(child.uuid)) {
           originalMaterials.delete(child.uuid);
         }
+
+        // Handle broken version as well, now inside the valid num block where shouldShow is defined
+        const brokenName = child.name + '_d';
+        const broken = bombModel.getObjectByName(brokenName);
+        if (broken) {
+          broken.visible = false;
+          // Also apply the color material to the broken version so it matches when cut
+          if (shouldShow && currentColorMapping[num]) {
+            // Re-use the material we just found for the main cable
+            if (child.material) {
+              broken.material = child.material;
+            }
+          }
+        }
       }
-      const brokenName = child.name + '_d';
-      const broken = bombModel.getObjectByName(brokenName);
-      if (broken) broken.visible = false;
     }
   });
 
@@ -453,7 +465,9 @@ function startRound(index) {
     const physicalCableNum = parseInt(llmPhysicalSuggestion.replace('cable', ''));
     const colorName = currentColorMapping[physicalCableNum] || 'unknown';
 
-    llmContainer.addMessage(`I've analyzed the module. Recommend cutting ${colorName}.`, "LLM");
+    // Build localized message
+    const msg = i18n.t('analysisMsg') + colorName + '.';
+    llmContainer.addMessage(msg, "LLM");
   }, 12000);
 
   // Dash Logic

@@ -20,17 +20,9 @@ def run(bot_address):
             print("Place dash in a flat surface.")
             time.sleep(4)
             while True:
-                robot.think()
-                robot.find_answer("fuchsia")
-                time.sleep(2)
-                now = time.time()
-                rand = random.randint(1, 10)
-                if rand > 5:
-                    robot.celebrate()
-                else:
-                    robot.feel_sad()
-                elapsed_time = time.time() - now
-                print("Time taken: {0:.2f} seconds".format(elapsed_time))
+                robot.morse_robot.say("SYSTAWESOME", volume=0.5)
+                time.sleep(1)
+                
 
         except KeyboardInterrupt:
             robot.stop()
