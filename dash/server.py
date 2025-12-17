@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 class MockRobot:
     def connect(self): print("MOCK: Connected to Dash")
     def think(self): print("MOCK: Thinking...")
-    def find_answer(self, color): print("MOCK: Found answer"), print(color)
+    def find_answer(self, color): print("MOCK: Found answer")
     def celebrate(self): print("MOCK: Celebrating!")
     def feel_sad(self): print("MOCK: Feeling sad :(")
 
@@ -89,7 +89,7 @@ def suggest():
             try:
                 bot.find_answer(c)
             except Exception as e:
-                print('Error during bot.find_answer:', e)
+                print('Error during bot.find_answer:')
             finally:
                 with suggest_lock:
                     suggest_state['status'] = 'done'
