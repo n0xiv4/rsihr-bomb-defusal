@@ -7,7 +7,7 @@ const translations = {
     language: 'Idioma',
     start: 'COMEÇAR JOGO',
     startGame: '▶ COMEÇAR JOGO',
-    
+
     // Guide Page
     guideTitle: 'KEEP TALKING AND NOBODY EXPLODES',
     guideSubtitle: 'Robot Bomb Defusal Game',
@@ -17,12 +17,12 @@ const translations = {
     mouseWheel: '🔍 Roda do rato:',
     zoomInOut: 'Fazer zoom in/out',
     aboutGame: '📋 Sobre o Jogo',
-    aboutGameDescription: 'Bem-vindo ao desafio de desmantelamento de bombas! Nesta experiência imersiva com robô, você controlará um manipulador robótico para cortar fios de um módulo explosivo. A sequência e combinação de fios é crítica - um corte errado e tudo explode!',
-    followRules: 'Siga atentamente as regras fornecidas abaixo para determinar qual fio deve ser cortado. Communicate com clareza, trabalhe com precisão e... mantenha a calma!',
+    aboutGameDescription: 'Bem-vindo ao desafio de desarmamento de bombas! Nesta experiência imersiva com robô, controlarás um manipulador robótico para cortar fios de um módulo explosivo. A sequência e combinação de fios é crítica - um corte errado e tudo explode!',
+    followRules: 'Segue atentamente as regras fornecidas abaixo para determinar qual fio deve ser cortado. Comunica com clareza, trabalha com precisão e... mantêm a calma!',
     wireGuide: '⚙️ GUIA DE FIOS',
     importantInfo: 'Informações Importantes',
     wireCount: 'O módulo de fios pode conter entre 3 a 6 fios',
-    correctWire: 'Apenas o fio correto precisa ser cortado para desarmar o módulo',
+    correctWire: 'Basta cortar o fio correto para desarmar o módulo',
     wireOrder: 'A ordem dos fios começa com o primeiro no topo',
     threeWires: '3 Fios',
     fourWires: '4 Fios',
@@ -30,14 +30,44 @@ const translations = {
     sixWires: '6 Fios',
     tip: 'ℹ️ Dica:',
     tipText: 'Estuda atentamente o módulo antes de qualquer ação. Identifica cada fio pela cor e acompanha a sequência correta da regra correspondente.',
-    goodLuck: 'Boa sorte, especialista em desmantelamento!',
+    goodLuck: 'Boa sorte, especialista em desarmamento!',
+
+    // LLM Messages
+    llmName: 'Agente LLM',
+    statusWriting: 'a escrever...',
+    analysisMsg: 'Analisei o módulo. Recomendo cortares o ',
+    defaultReply: 'Ainda não sei. Tente perguntar outra coisa!',
+
+    // Wire Colors
+    colors: {
+      red: 'vermelho',
+      blue: 'azul',
+      green: 'verde',
+      yellow: 'amarelo',
+      highlight_yellow: 'amarelo', // special case if needed, but simple map covers it
+      black: 'preto',
+      white: 'branco',
+      purple: 'roxo',
+      orange: 'laranja',
+      gray: 'cinza',
+      pink: 'rosa',
+      cyan: 'ciano',
+      magenta: 'magenta',
+      lime: 'lima',
+      teal: 'cerceta', // or verde-água
+      indigo: 'índigo',
+      violet: 'violeta',
+      gold: 'dourado',
+      silver: 'prateado',
+      brown: 'marrom'
+    }
   },
   en: {
     // Navigation and UI
     language: 'Language',
     start: 'START GAME',
     startGame: '▶ START GAME',
-    
+
     // Guide Page
     guideTitle: 'KEEP TALKING AND NOBODY EXPLODES',
     guideSubtitle: 'Robot Bomb Defusal Game',
@@ -61,6 +91,35 @@ const translations = {
     tip: 'ℹ️ Tip:',
     tipText: 'Study the module carefully before any action. Identify each wire by color and follow the correct rule sequence.',
     goodLuck: 'Good luck, defusal specialist!',
+
+    // LLM Messages
+    llmName: 'Agent LLM',
+    statusWriting: 'writing...',
+    analysisMsg: 'I\'ve analyzed the module. Recommend cutting ',
+    defaultReply: 'I don\'t know about that yet. Try asking something else!',
+
+    // Wire Colors
+    colors: {
+      red: 'red',
+      blue: 'blue',
+      green: 'green',
+      yellow: 'yellow',
+      black: 'black',
+      white: 'white',
+      purple: 'purple',
+      orange: 'orange',
+      gray: 'gray',
+      pink: 'pink',
+      cyan: 'cyan',
+      magenta: 'magenta',
+      lime: 'lime',
+      teal: 'teal',
+      indigo: 'indigo',
+      violet: 'violet',
+      gold: 'gold',
+      silver: 'silver',
+      brown: 'brown'
+    }
   }
 };
 
@@ -88,7 +147,18 @@ class LanguageManager {
   }
 
   t(key) {
-    return translations[this.currentLanguage][key] || key;
+    const keys = key.split('.');
+    let value = translations[this.currentLanguage];
+
+    for (const k of keys) {
+      if (value && value[k] !== undefined) {
+        value = value[k];
+      } else {
+        return key; // Return key if path not found
+      }
+    }
+
+    return value;
   }
 
   initializeLanguage() {

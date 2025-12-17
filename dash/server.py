@@ -22,9 +22,6 @@ except ImportError:
     print("WARNING: Could not import DashRobot (missing dependencies?). Using MockRobot.")
     DashRobot = MockRobot
 
-
-
-
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 

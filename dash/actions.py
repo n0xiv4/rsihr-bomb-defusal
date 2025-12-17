@@ -13,8 +13,6 @@ try:
 except Exception:
     import stack
 
-from displacement import DashDisplacement
-
 AVAILABLE_COLORS = [
     "red",
     "green",
@@ -98,7 +96,7 @@ def think(robot):
     """
     # Play a random thinking noise at the start
     turn_off_lights(robot)
-    
+
     led_mask = 0
     for i in range(0, 12, 1):
         led_mask |= (1 << i)
