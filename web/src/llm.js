@@ -1,6 +1,11 @@
 // Simple client-side "dummy LLM" chat UI
 // Exports: initLLM({ container })
 
+// Configurable timing constants for the dummy LLM response
+const DUMMY_LLM_MIN_DELAY = 1500; // ms
+const DUMMY_LLM_PER_CHAR = 20; // ms per character
+const DUMMY_LLM_MAX_DELAY = 2500; // ms
+
 class DummyLLM {
   // Simulate a response from an LLM. Returns a Promise<string>
   respond(prompt) {
@@ -28,7 +33,7 @@ class DummyLLM {
       }
 
       // Simulate thinking time proportional to message length
-      const delay = Math.min(1500 + prompt.length * 20, 2500)
+      const delay = Math.min(DUMMY_LLM_MIN_DELAY + prompt.length * DUMMY_LLM_PER_CHAR, DUMMY_LLM_MAX_DELAY)
       setTimeout(() => resolve(reply), delay)
     })
   }

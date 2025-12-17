@@ -1,17 +1,23 @@
 import * as THREE from 'three';
 
+// Configurable constants for the BombCounter
+const CANVAS_WIDTH = 1024;
+const CANVAS_HEIGHT = 256;
+const INITIAL_TIME = 40.0; // seconds
+const FONT_SIZE_PX = 180;
+
 export class BombCounter {
   constructor() {
     this.canvas = document.createElement('canvas');
-    this.canvas.width = 1024; // Wider canvas to fix stretching
-    this.canvas.height = 256;
+    this.canvas.width = CANVAS_WIDTH; // Wider canvas to fix stretching
+    this.canvas.height = CANVAS_HEIGHT;
     this.ctx = this.canvas.getContext('2d');
 
     this.texture = new THREE.CanvasTexture(this.canvas);
     this.texture.colorSpace = THREE.SRGBColorSpace;
 
     // Counter state
-    this.timeLeft = 40.00; // CS bomb time usually
+    this.timeLeft = INITIAL_TIME; // default bomb time
     this.lastTime = Date.now();
     this.isRunning = true;
   }
@@ -20,7 +26,7 @@ export class BombCounter {
     return this.texture;
   }
 
-  reset(duration = 40.00) {
+  reset(duration = INITIAL_TIME) {
     this.timeLeft = duration;
     this.lastTime = Date.now();
     this.isRunning = true;
@@ -58,9 +64,9 @@ export class BombCounter {
     this.ctx.shadowBlur = 15;
     this.ctx.shadowColor = '#ff0000';
 
-    // Text settings
-    // Increased font size to fill the screen
-    this.ctx.font = 'bold 180px "Courier New", monospace';
+  // Text settings
+  // Increased font size to fill the screen
+  this.ctx.font = `bold ${FONT_SIZE_PX}px "Courier New", monospace`;
     this.ctx.fillStyle = '#ff0000';
     this.ctx.textAlign = 'center';
     this.ctx.textBaseline = 'middle';

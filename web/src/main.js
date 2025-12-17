@@ -8,6 +8,16 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 
 // ... (previous imports)
 
+// --- Configurable constants ---
+// How long the LLM 'thinks' before posting a suggestion (ms)
+const LLM_RESPONSE_DELAY_MS = 12000;
+// Seconds to show overlay before next round
+const OVERLAY_COUNTDOWN_SECONDS = 10;
+// Default bomb countdown time (s)
+const BOMB_DEFAULT_TIME = 40.0;
+// Maximum number of cable positions available on the model
+const MAX_CABLES = 6;
+
 import { BombCounter } from './counter.js'
 import { initLLM } from './llm.js'
 import { logRoundData } from './firebase.js'
@@ -279,8 +289,8 @@ function startRound(index) {
   const roundData = allRounds[index];
   isRoundActive = true;
 
-  // Timer: 40s (handled by default in reset)
-  bombCounter.reset();
+  // Timer: reset to default countdown
+  bombCounter.reset(BOMB_DEFAULT_TIME);
   // Ensure any previous timer SFX is stopped, then play round-start looping timer sound
   stopSound('timer');
   playSound('timer', { volume: 0.6, loop: true });
@@ -329,7 +339,7 @@ function startRound(index) {
   // Use sequential cable positions (cable1, cable2, cable3, etc.) based on wireCount
   // No random selection - always use the first N cables
   const selectedPositions = [];
-  for (let i = 1; i <= wiresToShow && i <= 6; i++) {
+  for (let i = 1; i <= wiresToShow && i <= MAX_CABLES; i++) {
     selectedPositions.push(i);
   }
 
@@ -406,7 +416,7 @@ function startRound(index) {
     const colorName = currentColorMapping[physicalCableNum] || 'unknown';
     
     llmContainer.addMessage(`I've analyzed the module. Recommend cutting ${colorName}.`, "LLM");
-  }, 12000);
+  }, LLM_RESPONSE_DELAY_MS);
 
   // Dash Logic: NO LONGER IN CHAT, just internal logic if visuals were needed.
   // We keep it running but silent as requested.
@@ -451,7 +461,7 @@ function showResultOverlay(result, roundIdx, cutCableName = null) {
   overlay.classList.add('visible');
 
   // Countdown
-  let seconds = 10;
+  let seconds = OVERLAY_COUNTDOWN_SECONDS;
   overlayTimerCount.textContent = seconds;
 
   if (countdownInterval) clearInterval(countdownInterval);
