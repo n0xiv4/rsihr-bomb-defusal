@@ -16,11 +16,48 @@ import { logRoundData } from './firebase.js'
 const DASH_SERVER = 'http://localhost:5000';
 
 function callDash(endpoint, body = {}) {
-  fetch(`${DASH_SERVER}/${endpoint}`, {
+  return fetch(`${DASH_SERVER}/${endpoint}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
-  }).catch(err => console.warn(`Dash ${endpoint} failed:`, err)); // Warn but don't break game
+  }).catch(err => {
+    console.warn(`Dash ${endpoint} failed:`, err);
+    // Return a resolved promise so callers can keep going
+    return Promise.resolve(null);
+  }); // Warn but don't break game
+}
+
+/**
+ * Poll dash server for the suggestion status for a given color.
+ * Resolves when the server reports status === 'done' for that color, or
+ * resolves false on timeout.
+ */
+function waitForDashFound(color, { timeout = 10000, interval = 500 } = {}) {
+  if (!color) return Promise.resolve(false);
+  const start = Date.now();
+
+  return new Promise((resolve) => {
+    const poll = () => {
+      fetch(`${DASH_SERVER}/suggest/status?color=${encodeURIComponent(color)}`)
+        .then(r => r.json())
+        .then(state => {
+          if (state && state.status === 'done') {
+            resolve(true);
+          } else if (Date.now() - start >= timeout) {
+            resolve(false);
+          } else {
+            setTimeout(poll, interval);
+          }
+        })
+        .catch(() => {
+          // On error, keep polling until timeout
+          if (Date.now() - start >= timeout) resolve(false);
+          else setTimeout(poll, interval);
+        });
+    };
+
+    poll();
+  });
 }
 
 // ... (previous imports)
@@ -524,7 +561,7 @@ function onPointerMove(event) {
   pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 }
 
-function onClick(event) {
+async function onClick(event) {
   if (!isRoundActive || !gameConfig) return;
 
   if (hoveredObject) {
@@ -533,17 +570,38 @@ function onClick(event) {
     const brokenCable = scene.getObjectByName(brokenCableName);
 
     if (brokenCable) {
-      // Cut Animation
+      // Cut Animation (visuals happen immediately)
       if (originalMaterials.has(hoveredObject.uuid)) {
-        hoveredObject.material = originalMaterials.get(hoveredObject.uuid);
+        hoveredObject.material = originalMaterials.get(hoveredObject.uuid)
         originalMaterials.delete(hoveredObject.uuid);
       }
       hoveredObject.visible = false;
       brokenCable.visible = true;
       hoveredObject = null;
 
-      // Validate Cut
+      // Validate Cut but WAIT for Dash to finish its "found answer" action
       const roundData = allRounds[currentRoundIndex];
+
+      // Determine the dash suggested color for this round (if any)
+      const dashLogicalSuggestion = roundData.dashSuggestion;
+      const dashPhysicalSuggestion = currentCableMapping[dashLogicalSuggestion];
+      let dashColor = null;
+      if (dashPhysicalSuggestion) {
+        const dashCableNum = parseInt(dashPhysicalSuggestion.replace('cable', ''));
+        dashColor = currentColorMapping[dashCableNum];
+      }
+
+      // Wait for dash to finish its found_answer animation for the suggested color.
+      // If dashColor is null or wait times out, continue anyway.
+      try {
+        const dashFinished = await waitForDashFound(dashColor, { timeout: 12000, interval: 400 });
+        if (!dashFinished) {
+          console.warn('Dash did not report completion for color', dashColor, '— proceeding anyway');
+        }
+      } catch (e) {
+        console.warn('Error while waiting for Dash:', e);
+      }
+
       // Map the logical correctWire to physical cable position
       const correctPhysicalCable = currentCableMapping[roundData.correctWire];
       const isCorrect = cableName === correctPhysicalCable;
