@@ -6,11 +6,14 @@ from morseapi import MorseRobot
 import time
 import random
 
+
 # Import stack for movement tracking
 try:
     from . import stack
 except Exception:
     import stack
+
+from displacement import DashDisplacement
 
 AVAILABLE_COLORS = [
     "red",
@@ -95,44 +98,41 @@ def think(robot):
     """
     # Play a random thinking noise at the start
     turn_off_lights(robot)
-    robot.say(random.choice(THINKING_SOUNDS))
-    time.sleep(0.1)
-    
-    # Start looking to the left
-    robot.head_yaw(HEAD_YAW_LEFT)
-    time.sleep(0.1)
     
     led_mask = 0
-    for i in range(12):
+    for i in range(0, 12, 1):
         led_mask |= (1 << i)
         robot.eye(led_mask)
-        time.sleep(0.2)
         
         if i % 6 == 0:
-            head_position_index = i // 3  # 0-3 for i in 0, 3, 6, 9
+            head_position_index = i // 3
             yaw_angle = HEAD_YAW_LEFT + (head_position_index / 3.0) * (HEAD_YAW_RIGHT - HEAD_YAW_LEFT)
             robot.head_yaw(int(yaw_angle))
-            robot.say(random.choice(THINKING_SOUNDS))
-            time.sleep(0.1)
+            # robot.say(random.choice(THINKING_SOUNDS))
+            time.sleep(0.5)
         
-        if i % 2 == 0:
-            robot.move(25, 200, True)
-            time.sleep(.8)
+        elif i == 4:
+            robot.move(20, 50, True)
+            time.sleep(0.9)
+
+        elif i == 10:
+            robot.move(-20, 50, True)
+            time.sleep(0.9)
+
+        elif i in [3, 9]:
             robot.head_pitch(5)
-            time.sleep(0.1)
+            time.sleep(0.3)
             robot.head_pitch(-2)
-            time.sleep(0.1)
-            robot.head_pitch(0)
-            time.sleep(0.1)    
+            time.sleep(0.3)
+
         else:
-            robot.move(-25, 200, True)
-            time.sleep(0.8)
+            time.sleep(.6)
     
+    robot.move(-6, 50, True)
+    robot.turn(3, 50)
     # Turn off all LEDs at the end
     robot.eye(0)
     # Return head to neutral position
-    robot.head_yaw(0)
-    robot.head_pitch(0)
 
 def found_answer(robot, color):
     """Function that makes the robot react happily when finding an answer.
@@ -144,52 +144,27 @@ def found_answer(robot, color):
     # Light up all LEDs with the answer color
     all_leds = 0b111111111111  # All 12 LEDs lit (8191 in decimal)
     robot.eye(all_leds)
-    robot.head_yaw(0)
-    robot.head_pitch(0)
     turn_all_lights(robot, color)
     robot.say("bragging")
-    robot.turn(180, 100)
-    time.sleep(.2)
+    robot.turn(180, 150)
+    turn_all_lights(robot, color)
+    time.sleep(.6)
 
-    robot.turn(90, 50)
-    robot.head_yaw(-16)
-    time.sleep(.3)
-    robot.head_yaw(16)
-    robot.turn(-90, 50)
-    
-    time.sleep(.5)
-    robot.move(25, 200, True)
-    time.sleep(.5)
-
-    # Nod head up and down (happy nodding)
-    robot.turn(45, 50)
-    time.sleep(.1)
-    robot.head_pitch(-53)
-    time.sleep(.1)
-    robot.head_pitch(53)
-    time.sleep(.1)
-    robot.head_pitch(-53)
-    time.sleep(.1)
-    robot.head_pitch(53)
-    time.sleep(.1)
-    robot.turn(-45, 50)
-
-    time.sleep(.3)
-    robot.move(-25, 200, True)
-    time.sleep(.3)
-    
-    # Keep lights on for a moment longer
-    time.sleep(1)
-    
-    # Turn off all LEDs
     turn_off_lights(robot)
+    # Nod head up and down (happy nodding)
+    robot.head_pitch(-5)
+    turn_all_lights(robot, color)
+    time.sleep(.5)
+    robot.head_pitch(10)
+
+    turn_all_lights(robot, color)
 
 
 def turn_all_lights(robot, color):
     """Set all lights on the robot to the specified color."""
     robot.eye(0b111111111111)  # All 12 LEDs lit
     robot.neck_color(color)
-    # robot.left_ear_color(color)
+    robot.left_ear_color(color)
     robot.right_ear_color(color)
 
 def turn_off_lights(robot):
@@ -206,11 +181,6 @@ def celebrate(robot):
     """
     sounds = ["systexcited_01", "systexcited_02", "systexcited_06", "systfantastic"]
     
-    # Neutral position
-    robot.head_yaw(0)
-    robot.head_pitch(0)
-    time.sleep(0.1)
-    
     # Head movement limits
     LEFT = -53
     RIGHT = -20
@@ -223,39 +193,30 @@ def celebrate(robot):
     
     for i in range(2):        
         # Alternate spinning direction
+        turn_all_lights(robot, "green")
         if i % 2 == 0:
             robot.say(random.choice(sounds), volume=0.5)
             robot.turn(TURN, TURN_SPEED)
         else:
             robot.turn(-TURN, TURN_SPEED)
+        turn_off_lights(robot)
         
         # Head movement sequence
         robot.head_yaw(LEFT)
         robot.head_pitch(DOWN)
         time.sleep(TIME)
         
+        turn_all_lights(robot, "green")
         robot.head_yaw(RIGHT)
         robot.head_pitch(UP)
-        time.sleep(TIME)
-        
-        robot.head_yaw(0)
-        robot.head_pitch(0)
         time.sleep(TIME)
         
         robot.head_yaw(RIGHT)
         robot.head_pitch(DOWN)
         time.sleep(TIME)
-        
-        robot.head_yaw(LEFT)
-        robot.head_pitch(UP)
-        time.sleep(TIME)
+        turn_off_lights(robot)
     
-    # Return to neutral position
-    robot.head_yaw(0)
-    robot.head_pitch(0)
-
-    time.sleep(.2)
-    robot.turn(-170, 50)
+    robot.turn(-176, 150)
 
 def feel_sad(robot):
     """Function that makes the robot express sadness with head movements and sounds.
@@ -273,27 +234,25 @@ def feel_sad(robot):
     turn_all_lights(robot, "red")
     # Reset to looking up position
     robot.head_pitch(5)
-    robot.head_yaw(0)
     robot.say(random.choice(sounds), volume=0.5)
     turn_off_lights(robot)
-    time.sleep(1)
+    time.sleep(.2)
     
     # Shake head "no" (left to right)
     turn_all_lights(robot, "red")
     robot.head_yaw(-15)
-    time.sleep(0.5)
+    time.sleep(0.3)
     robot.head_yaw(15)
-    time.sleep(0.5)
+    time.sleep(0.3)
     turn_off_lights(robot)
-    robot.head_yaw(0)
-    turn_all_lights(robot, "red")
     # Look down (sad posture)
     robot.head_pitch(-5)
-    time.sleep(2.5)
+    time.sleep(1)
     robot.say(random.choice(sounds), volume=0.5)
     turn_off_lights(robot)
     
     # Return to neutral position
-    robot.head_yaw(0)
     time.sleep(.2)
-    robot.turn(-170, 50)
+    turn_all_lights(robot, "red")
+    robot.turn(-183, 150)
+    turn_off_lights(robot)

@@ -18,17 +18,19 @@ def run(bot_address):
         try:
             robot.connect()
             print("Place dash in a flat surface.")
-            time.sleep(5)
+            time.sleep(4)
             while True:
-                now = time.time()
                 robot.think()
-                time.sleep(.5)
+                robot.find_answer("fuchsia")
+                time.sleep(2)
+                now = time.time()
+                rand = random.randint(1, 10)
+                if rand > 5:
+                    robot.celebrate()
+                else:
+                    robot.feel_sad()
                 elapsed_time = time.time() - now
                 print("Time taken: {0:.2f} seconds".format(elapsed_time))
-                robot.find_answer("red")  # Move forward 
-                print("Found answer!")
-                time.sleep(.5) 
-                # robot.rollback()
 
         except KeyboardInterrupt:
             robot.stop()

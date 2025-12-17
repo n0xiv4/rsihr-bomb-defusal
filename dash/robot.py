@@ -103,12 +103,6 @@ class DashRobot:
     def stop(self):
         """Stop all robot movement."""
         self.morse_robot.stop()
-    
-    def rollback(self):
-        """
-        Undo the last movements in reverse order using the movement stack.
-        """
-        self.movement_stack.rollback()
 
     def turn_all_lights(self, color):
         """Set all lights on the robot to the specified color."""
