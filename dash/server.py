@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 class MockRobot:
     def connect(self): print("MOCK: Connected to Dash")
     def think(self): print("MOCK: Thinking...")
-    def find_answer(self, color): print(f"MOCK: Found answer {color}")
+    def find_answer(self, color): print("MOCK: Found answer"), print(color)
     def celebrate(self): print("MOCK: Celebrating!")
     def feel_sad(self): print("MOCK: Feeling sad :(")
 
@@ -32,6 +32,14 @@ CORS(app)  # Enable CORS for all routes
 robot = None
 robot_lock = threading.Lock()
 
+# Track the last suggestion state so the web frontend can wait until Dash finishes
+suggest_lock = threading.Lock()
+suggest_state = {
+    'status': 'idle',   # 'idle' | 'pending' | 'done'
+    'color': None,
+    'updated_at': None
+}
+
 BT_ADDRESS = "D7:A1:50:13:3B:F3"
 
 def get_robot():
@@ -44,7 +52,8 @@ def get_robot():
                 robot.connect()
                 print("Dash Connected!")
             except Exception as e:
-                print(f"Failed to connect to Dash: {e}")
+                print("Failed to connect to Dash:")
+                print(e)
                 robot = None
         return robot
 
@@ -71,9 +80,43 @@ def suggest():
     bot = get_robot()
     if bot:
         # Dash logic involves finding the answer (moving/pointing)
-        threading.Thread(target=bot.find_answer, args=(color,)).start()
+        with suggest_lock:
+            suggest_state['status'] = 'pending'
+            suggest_state['color'] = color
+            suggest_state['updated_at'] = time.time()
+
+        def _find_and_mark(c):
+            try:
+                bot.find_answer(c)
+            except Exception as e:
+                print('Error during bot.find_answer:', e)
+            finally:
+                with suggest_lock:
+                    suggest_state['status'] = 'done'
+                    suggest_state['color'] = c
+                    suggest_state['updated_at'] = time.time()
+
+        threading.Thread(target=_find_and_mark, args=(color,)).start()
         return jsonify({"status": "suggesting", "color": color})
     return jsonify({"error": "Robot not connected"}), 503
+
+
+@app.route('/suggest/status', methods=['GET'])
+def suggest_status():
+    """Return the status of the last suggestion.
+
+    Optional query param `color` can be provided to check status for a specific color.
+    """
+    qcolor = request.args.get('color')
+    with suggest_lock:
+        state = dict(suggest_state)
+
+    # If a color was requested and it doesn't match the tracked color, report idle
+    if qcolor and state.get('color') and qcolor != state.get('color'):
+        # There is a tracked suggestion but for a different color
+        return jsonify({"status": "idle", "color": qcolor})
+
+    return jsonify(state)
 
 @app.route('/celebrate', methods=['POST'])
 def celebrate():
