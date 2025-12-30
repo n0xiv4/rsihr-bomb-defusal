@@ -29,20 +29,59 @@ function callDash(endpoint, body = {}) {
 }
 
 /**
- * Poll dash server for the suggestion status for a given color.
- * Resolves when the server reports status === 'done' for that color, or
- * resolves false on timeout.
+ * Poll dash server for BOTH think() and suggest() (found_answer) completion.
+ * Resolves when the server reports BOTH are done, or resolves false on timeout.
  */
-function waitForDashFound(color, { timeout = 10000, interval = 500 } = {}) {
-  if (!color) return Promise.resolve(false);
+function waitForDashFound(color, { timeout = 15000, interval = 200 } = {}) {
   const start = Date.now();
 
   return new Promise((resolve) => {
     const poll = () => {
-      fetch(`${DASH_SERVER}/suggest/status?color=${encodeURIComponent(color)}`)
+      // Query without color - we want to wait for ANY suggest to complete, not a specific color
+      fetch(`${DASH_SERVER}/suggest/status`)
         .then(r => r.json())
         .then(state => {
-          if (state && state.status === 'done') {
+          // CRITICAL: Both think() and suggest() (find_answer) must be done
+          const thinkDone = state.think && state.think.status === 'done';
+          const suggestDone = state.suggest && state.suggest.status === 'done';
+          
+          console.log(`[Dash Status Poll] Think: ${state.think?.status}, Suggest: ${state.suggest?.status}`);
+          
+          if (thinkDone && suggestDone) {
+            console.log('[Dash Status] Both think and suggest complete!');
+            resolve(true);
+          } else if (Date.now() - start >= timeout) {
+            console.warn('[TIMEOUT] Timeout waiting for Dash (15s). Think:', state.think, 'Suggest:', state.suggest);
+            resolve(false);
+          } else {
+            setTimeout(poll, interval);
+          }
+        })
+        .catch(err => {
+          // On error, keep polling until timeout
+          console.warn('Error polling Dash status:', err);
+          if (Date.now() - start >= timeout) resolve(false);
+          else setTimeout(poll, interval);
+        });
+    };
+
+    poll();
+  });
+}
+
+/**
+ * Wait for Dash to become idle (no ongoing suggest action).
+ * Resolves when Dash status is 'idle', or after timeout.
+ */
+function waitForDashIdle({ timeout = 3000, interval = 200 } = {}) {
+  const start = Date.now();
+
+  return new Promise((resolve) => {
+    const poll = () => {
+      fetch(`${DASH_SERVER}/suggest/status`)
+        .then(r => r.json())
+        .then(state => {
+          if (state && state.status === 'idle') {
             resolve(true);
           } else if (Date.now() - start >= timeout) {
             resolve(false);
@@ -148,7 +187,8 @@ const audioBuffers = {
   defused: null,
   explosion: null,
   theme: null,
-  timer: null
+  timer: null,
+  message: null
 };
 
 // Keep track of playing THREE.Audio instances by type so we can stop them
@@ -160,6 +200,7 @@ sfxLoader.load('/audio/defused_bomb.mp3', (buffer) => { audioBuffers.defused = b
 sfxLoader.load('/audio/bomb_explosion.mp3', (buffer) => { audioBuffers.explosion = buffer; });
 sfxLoader.load('/audio/csgo_main_theme.mp3', (buffer) => { audioBuffers.theme = buffer; });
 sfxLoader.load('/audio/bomb_time.mp3', (buffer) => { audioBuffers.timer = buffer; });
+sfxLoader.load('/audio/whatsapp_message.mp3', (buffer) => { audioBuffers.message = buffer; });
 
 /**
  * Play a buffered SFX and keep a reference so it can be stopped later.
@@ -230,6 +271,9 @@ let countdownInterval = null;
 let suggestionTimeout = null;
 let currentCableMapping = {}; // Maps logical cable (cable1, cable2) to physical position
 let currentColorMapping = {}; // Maps physical cable position to color
+let hasReceivedFeedback = false; // Track if user has received advice before acting
+let cutBeforeFeedback = false;
+
 
 // Load Configuration
 const urlParams = new URLSearchParams(window.location.search);
@@ -336,6 +380,8 @@ function startRound(index) {
 
   // Hide Overlay
   overlay.classList.remove('visible');
+  hasReceivedFeedback = false;
+  cutBeforeFeedback = false;
 
   // Setup Cables
   const wiresToShow = roundData.wireCount;
@@ -468,6 +514,8 @@ function startRound(index) {
     // Build localized message
     const msg = i18n.t('analysisMsg') + colorName + '.';
     llmContainer.addMessage(msg, "LLM");
+    playSound('message', { volume: 0.5 });
+    hasReceivedFeedback = true;
   }, 12000);
 
   // Dash Logic
@@ -489,12 +537,13 @@ function startRound(index) {
       console.log(`Dash Suggests: ${dashLogicalSuggestion} -> ${dashPhysicalSuggestion} (${dashColor})`);
       if (dashColor) {
         callDash('suggest', { color: dashColor });
+        hasReceivedFeedback = true;
       }
     }
   }, 10000); // 10 seconds in
 }
 
-function showResultOverlay(result, roundIdx, cutCableName = null) {
+function showResultOverlay(result, roundIdx, cutCableName = null, wasCutBeforeFeedback = false) {
   isRoundActive = false;
   bombCounter.isRunning = false;
 
@@ -519,8 +568,27 @@ function showResultOverlay(result, roundIdx, cutCableName = null) {
     // "se ele errou/a bomba explodiu feel_sad"
     // "se deu a resposta certa e a pessoa escolheu essa, celebrate"
 
-    const dashWasRight = dashSuggestion === correctWire;
+    // Check if dash was right (handling both wire-specific and color-specific rounds)
+    let dashWasRight = false;
+    if (roundData.correctColor) {
+      // For color-based rounds, Dash is right if it suggested ANY wire of the correct color
+      const dashLogicalSuggestion = roundData.dashSuggestion;
+      const dashPhysicalSuggestion = currentCableMapping[dashLogicalSuggestion]; // e.g. "cable2"
 
+      if (dashPhysicalSuggestion) {
+        const dashCableNum = parseInt(dashPhysicalSuggestion.replace('cable', ''));
+        const dashColor = currentColorMapping[dashCableNum];
+        if (dashColor === roundData.correctColor) {
+          dashWasRight = true;
+        }
+      }
+    } else {
+      // Standard wire-specific check
+      dashWasRight = (dashSuggestion === correctWire);
+    }
+
+    // All Dash actions (think + found_answer) have already completed in onClick before reaching here
+    // Now safely trigger the response action
     if (isWin && dashWasRight) {
       callDash('celebrate');
     } else {
@@ -535,6 +603,7 @@ function showResultOverlay(result, roundIdx, cutCableName = null) {
     const timeTaken = 40 - bombCounter.timeLeft; // Assuming 40s start time
 
     const sessionData = {
+      roundId: roundData.roundId,
       roundIndex: roundIdx,
       condition: gameConfig.conditionName || 'unknown',
       correctCable: roundData.correctWire,
@@ -542,10 +611,14 @@ function showResultOverlay(result, roundIdx, cutCableName = null) {
       outcome: result, // 'win', 'loss', 'timeout'
       timeTaken: parseFloat(timeTaken.toFixed(3)),
       llmSuggestion: roundData.llmSuggestion,
-      dashSuggestion: roundData.dashSuggestion || 'none'
+      dashSuggestion: roundData.dashSuggestion || 'none',
+      cutBeforeFeedback: wasCutBeforeFeedback,
+      participantId: localStorage.getItem('participantId') || 'unknown'
     };
 
     logRoundData(sessionData);
+    // Export to CSV
+    callDash('csv', sessionData);
   }
 
   overlay.classList.add('visible');
@@ -584,6 +657,7 @@ async function onClick(event) {
     const brokenCable = scene.getObjectByName(brokenCableName);
 
     if (brokenCable) {
+      const feedbackStatusAtClick = !hasReceivedFeedback;
       // Cut Animation (visuals happen immediately)
       if (originalMaterials.has(hoveredObject.uuid)) {
         hoveredObject.material = originalMaterials.get(hoveredObject.uuid)
@@ -605,22 +679,39 @@ async function onClick(event) {
         dashColor = currentColorMapping[dashCableNum];
       }
 
-      // Wait for dash to finish its found_answer animation for the suggested color.
-      // If dashColor is null or wait times out, continue anyway.
+      // CRITICAL: Wait for dash to finish BOTH think() and found_answer(color) animations.
+      // This is essential before showing any result or reaction.
       try {
-        const dashFinished = await waitForDashFound(dashColor, { timeout: 12000, interval: 400 });
+        console.log('[Click Handler] Waiting for Dash to complete think() + suggest()...');
+        const dashFinished = await waitForDashFound(dashColor);
         if (!dashFinished) {
-          console.warn('Dash did not report completion for color', dashColor, '— proceeding anyway');
+          console.warn('[WARNING] Dash did not report completion — proceeding anyway');
+        } else {
+          console.log('[OK] Dash confirmed completion of think() + suggest()');
         }
+        // After the suggest is done, wait a bit more to ensure all robot movements are complete
+        await new Promise(resolve => setTimeout(resolve, 500));
       } catch (e) {
-        console.warn('Error while waiting for Dash:', e);
+        console.warn('[ERROR] Error while waiting for Dash:', e);
       }
 
       // Map the logical correctWire to physical cable position
-      const correctPhysicalCable = currentCableMapping[roundData.correctWire];
-      const isCorrect = cableName === correctPhysicalCable;
+      let isCorrect = false;
 
-      showResultOverlay(isCorrect ? 'win' : 'loss', currentRoundIndex, cableName);
+      if (roundData.correctColor) {
+        // Color-based logic (e.g. Round 3 & 11)
+        // Defuse if the cut cable matches the correct color
+        const cutCableNum = parseInt(cableName.replace('cable', ''));
+        const cutColor = currentColorMapping[cutCableNum];
+        isCorrect = (cutColor === roundData.correctColor);
+        console.log(`Round ${roundData.roundId} (Color Mode): Cut ${cableName} (${cutColor}). Correct: ${roundData.correctColor}. Success: ${isCorrect}`);
+      } else {
+        // Standard specific-wire logic
+        const correctPhysicalCable = currentCableMapping[roundData.correctWire];
+        isCorrect = (cableName === correctPhysicalCable);
+      }
+
+      showResultOverlay(isCorrect ? 'win' : 'loss', currentRoundIndex, cableName, feedbackStatusAtClick);
     }
   }
 }

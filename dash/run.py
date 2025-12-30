@@ -18,11 +18,13 @@ def run(bot_address):
         try:
             robot.connect()
             print("Place dash in a flat surface.")
-            time.sleep(4)
+            time.sleep(2)
             while True:
-                robot.morse_robot.say("SYSTAWESOME", volume=0.5)
-                time.sleep(1)
-                
+                sounds = ["systwhistle_a", "systwhistle_b", "bragging"]
+                for sound in sounds:
+                    print("Playing sound:", sound)
+                    robot.morse_robot.say(sound, volume=0.5)
+                    time.sleep(4)
 
         except KeyboardInterrupt:
             robot.stop()
