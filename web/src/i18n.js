@@ -37,6 +37,10 @@ const translations = {
     statusWriting: 'a escrever...',
     analysisMsg: 'Analisei o módulo. Recomendo cortares o ',
     defaultReply: 'Ainda não sei. Tente perguntar outra coisa!',
+    llmEmpty: 'Por favor, escreve uma mensagem.',
+    llmHello: 'Olá! Sou o teu LLM local. Posso repetir, resumir ou inverter texto.',
+    llmEchoPrefix: 'Disseste: ',
+    llmBomb: 'Vejo que tens um visualizador de bombas. Modelo 3D fixe — podes rodar e fazer zoom.',
 
     // Wire Colors
     colors: {
@@ -97,6 +101,10 @@ const translations = {
     statusWriting: 'writing...',
     analysisMsg: 'I\'ve analyzed the module. Recommend cutting ',
     defaultReply: 'I don\'t know about that yet. Try asking something else!',
+    llmEmpty: 'Please type a message.',
+    llmHello: 'Hello! I\'m your local dummy LLM. I can echo, summarize, or reverse text.',
+    llmEchoPrefix: 'You said: ',
+    llmBomb: 'I see you have a bomb viewer. Nice 3D model — you can rotate and zoom it.',
 
     // Wire Colors
     colors: {
@@ -126,8 +134,14 @@ const translations = {
 // Language manager
 class LanguageManager {
   constructor() {
-    this.currentLanguage = this.getStoredLanguage() || 'pt';
+    this.currentLanguage = this.getUrlLanguage() || this.getStoredLanguage() || 'pt';
     this.initializeLanguage();
+  }
+
+  getUrlLanguage() {
+    const params = new URLSearchParams(window.location.search);
+    const lang = params.get('lang');
+    return ['pt', 'en'].includes(lang) ? lang : null;
   }
 
   getStoredLanguage() {

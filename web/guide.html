@@ -1,355 +1,470 @@
 <!DOCTYPE html>
 <html lang="pt">
-  <head>
-    <meta charset="UTF-8">
-    <title>Instruções - Keep Talking and Nobody Explodes</title>
 
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+<head>
+  <meta charset="UTF-8">
+  <title>Instruções - Keep Talking and Nobody Explodes</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #111;
+      color: white;
+      font-family: 'Courier New', monospace;
+      overflow-y: auto;
+    }
+
+    .guide-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      padding-top: 80px;
+      min-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Slides */
+    .slide {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    /* Adjust current content toggling to just be a wrapper */
+    .content {
+      display: none;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    /* Navigation */
+    .nav-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #333;
+    }
+
+    .nav-controls.top {
+      border-top: none;
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-top: 0;
+    }
+
+    .progress-bar {
+      width: 100%;
+      max-width: 300px;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: #e74c3c;
+      width: 25%;
+      transition: width 0.3s ease;
+    }
+
+    .nav-btn {
+      padding: 10px 25px;
+      background: #333;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: #e74c3c;
+      border-color: #e74c3c;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    #slide-indicator {
+      color: #666;
+      font-size: 0.9em;
+      letter-spacing: 2px;
+    }
+
+    /* IST ID Form */
+    .ist-id-container {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .ist-id-container label {
+      display: block;
+      margin-bottom: 10px;
+      color: #e74c3c;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .ist-id-input {
+      display: block !important;
+      background: #333 !important;
+      border: 2px solid #555 !important;
+      padding: 10px 15px !important;
+      color: white !important;
+      font-family: inherit;
+      font-size: 1.1em !important;
+      border-radius: 4px;
+      width: 100% !important;
+      max-width: 300px !important;
+      height: 50px !important;
+      margin: 0 auto !important;
+      text-align: center;
+      box-sizing: border-box !important;
+      opacity: 1 !important;
+    }
+
+    .ist-id-input:focus {
+      outline: none;
+      border-color: #e74c3c !important;
+    }
+
+    /* Override any invalid styling */
+    .ist-id-input:invalid {
+      box-shadow: none;
+    }
+
+    /* Consent Form */
+    .consent-form {
+      text-align: left;
+      background: #151515;
+      border: 1px solid #333;
+      padding: 30px;
+    }
+
+    .consent-item {
+      margin-bottom: 20px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 15px;
+    }
+
+    .consent-item:last-child {
+      border-bottom: none;
+    }
+
+    .consent-item h3 {
+      color: #ddd;
+      font-size: 1.1em;
+      margin-bottom: 5px;
+    }
+
+    .consent-item p {
+      color: #999;
+      font-size: 0.95em;
+      line-height: 1.5;
+    }
+
+    .consent-check {
+      margin-top: 30px;
+      padding: 20px;
+      background: #222;
+      border: 1px solid #e74c3c;
+      text-align: center;
+    }
+
+    .consent-check label {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #fff;
+    }
+
+    .consent-check input {
+      width: 20px;
+      height: 20px;
+      accent-color: #e74c3c;
+    }
+
+    /* Common Styles */
+    .guide-header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #fff;
+      padding-bottom: 20px;
+    }
+
+    .guide-header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+    }
+
+    .guide-header p {
+      font-size: 1em;
+      color: #ccc;
+    }
+
+    .controls {
+      background: #222;
+      padding: 20px;
+      border-left: 4px solid #e74c3c;
+      margin-bottom: 30px;
+    }
+
+    .controls h2 {
+      margin-bottom: 10px;
+      color: #e74c3c;
+    }
+
+    .controls p {
+      margin: 5px 0;
+    }
+
+    .description {
+      background: #1a1a1a;
+      padding: 25px;
+      margin-bottom: 30px;
+      border-radius: 5px;
+      line-height: 1.6;
+    }
+
+    .description h2 {
+      color: #3498db;
+      margin-bottom: 15px;
+    }
+
+    .description p {
+      margin-bottom: 10px;
+      color: #ddd;
+    }
+
+    .rules-section {
+      margin-bottom: 20px;
+    }
+
+    .rules-section h2 {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #444;
+      padding-bottom: 10px;
+    }
+
+    .rule-box {
+      background: #222;
+      border: 1px solid #444;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .rule-box h3 {
+      color: #f39c12;
+      font-size: 1.1em;
+      margin-bottom: 10px;
+    }
+
+    .rule-box ul {
+      margin-left: 20px;
+      color: #ddd;
+    }
+
+    .rule-box li {
+      margin-bottom: 5px;
+    }
+
+    .info-box {
+      background: #1a3a3a;
+      border-left: 4px solid #27ae60;
+      padding: 15px;
+      margin-top: 15px;
+      font-style: italic;
+    }
+
+    .button-container {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .start-game-btn {
+      padding: 15px 40px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      letter-spacing: 1px;
+      background: #e74c3c;
+      color: white;
+      transition: all 0.3s;
+    }
+
+    .start-game-btn:hover {
+      background: #c0392b;
+      transform: scale(1.05);
+    }
+
+    /* Language Toggle - Global */
+    .language-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+      z-index: 9999;
+    }
+
+    .lang-btn {
+      padding: 10px 16px;
+      background: rgba(51, 51, 51, 0.8);
+      color: white;
+      border: 2px solid rgba(85, 85, 85, 0.8);
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      font-weight: bold;
+      backdrop-filter: blur(10px);
+    }
+
+    .lang-btn:hover {
+      border-color: #e74c3c;
+      transform: translateY(-2px);
+    }
+
+    .lang-btn.active {
+      background: #e74c3c;
+      border-color: #e74c3c;
+      box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+    }
+
+    /* Content Toggling */
+    .content {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
       }
 
-      body {
-        background: #111;
-        color: white;
-        font-family: 'Courier New', monospace;
-        overflow-y: auto;
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Timer Styles */
+    .timer-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.82);
+      padding: 8px 25px;
+      border: 2px solid #e74c3c;
+      border-radius: 5px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      box-shadow: 0 0 25px rgba(231, 76, 60, 0.4);
+      backdrop-filter: blur(8px);
+      pointer-events: none;
+      min-width: 150px;
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      border-top-width: 4px;
+      visibility: hidden;
+      opacity: 0;
+    }
+
+    .timer-container.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .timer-label {
+      font-size: 0.7em;
+      color: #e74c3c;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .timer-value {
+      font-family: 'Courier New', monospace;
+      font-size: 2.2em;
+      color: #e74c3c;
+      font-weight: bold;
+      text-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
+      line-height: 1;
+    }
+
+    .timer-value.warning {
+      color: #ff3e3e;
+      text-shadow: 0 0 20px rgba(255, 62, 62, 0.8);
+      animation: pulse-red 1s infinite alternate;
+    }
+
+    @keyframes pulse-red {
+      from {
+        opacity: 1;
+        transform: scale(1);
       }
 
-      .guide-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 20px;
-        padding-top: 80px;
-        min-height: 80vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-
-      /* Slides */
-      .slide {
-        display: none;
-        animation: fadeIn 0.4s ease;
-      }
-
-      .slide.active {
-        display: block;
-      }
-
-      /* Adjust current content toggling to just be a wrapper */
-      .content {
-        display: none;
-      }
-      .content.active {
-        display: block;
-      }
-
-      /* Navigation */
-      .nav-controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid #333;
-      }
-
-      .nav-controls.top {
-        border-top: none;
-        margin-top: 0;
-        margin-bottom: 20px;
-        padding-top: 0;
-      }
-
-      .progress-bar {
-        width: 100%;
-        max-width: 300px;
-        height: 4px;
-        background: #333;
-        border-radius: 2px;
-        overflow: hidden;
-      }
-
-      .progress {
-        height: 100%;
-        background: #e74c3c;
-        width: 25%;
-        transition: width 0.3s ease;
-      }
-
-      .nav-btn {
-        padding: 10px 25px;
-        background: #333;
-        color: white;
-        border: 1px solid #555;
-        border-radius: 3px;
-        cursor: pointer;
-        font-family: inherit;
-        font-weight: bold;
-        transition: all 0.2s;
-      }
-
-      .nav-btn:hover:not(:disabled) {
-        background: #e74c3c;
-        border-color: #e74c3c;
-      }
-
-      .nav-btn:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
-
-      #slide-indicator {
-        color: #666;
-        font-size: 0.9em;
-        letter-spacing: 2px;
-      }
-
-      /* IST ID Form */
-      .ist-id-container {
-        margin-bottom: 20px;
-        text-align: center;
-      }
-      
-      .ist-id-container label {
-        display: block;
-        margin-bottom: 10px;
-        color: #e74c3c;
-        font-weight: bold;
-        font-size: 1.1em;
-      }
-    
-      .ist-id-input {
-        display: block !important;
-        background: #333 !important;
-        border: 2px solid #555 !important;
-        padding: 10px 15px !important;
-        color: white !important;
-        font-family: inherit;
-        font-size: 1.1em !important;
-        border-radius: 4px;
-        width: 100% !important;
-        max-width: 300px !important;
-        height: 50px !important;
-        margin: 0 auto !important;
-        text-align: center;
-        box-sizing: border-box !important;
-        opacity: 1 !important;
-      }
-
-      .ist-id-input:focus {
-        outline: none;
-        border-color: #e74c3c !important;
-      }
-      
-      /* Override any invalid styling */
-      .ist-id-input:invalid {
-        box-shadow: none;
-      }
-
-      /* Consent Form */
-      .consent-form {
-        text-align: left;
-        background: #151515;
-        border: 1px solid #333;
-        padding: 30px;
-      }
-
-      .consent-item {
-        margin-bottom: 20px;
-        border-bottom: 1px solid #222;
-        padding-bottom: 15px;
-      }
-
-      .consent-item:last-child {
-        border-bottom: none;
-      }
-
-      .consent-item h3 {
-        color: #ddd;
-        font-size: 1.1em;
-        margin-bottom: 5px;
-      }
-
-      .consent-item p {
-        color: #999;
-        font-size: 0.95em;
-        line-height: 1.5;
-      }
-
-      .consent-check {
-        margin-top: 30px;
-        padding: 20px;
-        background: #222;
-        border: 1px solid #e74c3c;
-        text-align: center;
-      }
-
-      .consent-check label {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        color: #fff;
-      }
-
-      .consent-check input {
-        width: 20px;
-        height: 20px;
-        accent-color: #e74c3c;
-      }
-
-      /* Common Styles */
-      .guide-header {
-        text-align: center;
-        margin-bottom: 30px;
-        border-bottom: 2px solid #fff;
-        padding-bottom: 20px;
-      }
-
-      .guide-header h1 {
-        font-size: 2em;
-        margin-bottom: 10px;
-        letter-spacing: 2px;
-      }
-
-      .guide-header p {
-        font-size: 1em;
-        color: #ccc;
-      }
-      
-      .controls {
-        background: #222;
-        padding: 20px;
-        border-left: 4px solid #e74c3c;
-        margin-bottom: 30px;
-      }
-      
-      .controls h2 { margin-bottom: 10px; color: #e74c3c; }
-      .controls p { margin: 5px 0; }
-
-      .description {
-        background: #1a1a1a;
-        padding: 25px;
-        margin-bottom: 30px;
-        border-radius: 5px;
-        line-height: 1.6;
-      }
-      .description h2 { color: #3498db; margin-bottom: 15px; }
-      .description p { margin-bottom: 10px; color: #ddd; }
-
-      .rules-section { margin-bottom: 20px; }
-      .rules-section h2 { font-size: 1.5em; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
-
-      .rule-box {
-        background: #222;
-        border: 1px solid #444;
-        padding: 15px;
-        margin-bottom: 15px;
-      }
-      .rule-box h3 { color: #f39c12; font-size: 1.1em; margin-bottom: 10px; }
-      .rule-box ul { margin-left: 20px; color: #ddd; }
-      .rule-box li { margin-bottom: 5px; }
-
-      .info-box {
-        background: #1a3a3a;
-        border-left: 4px solid #27ae60;
-        padding: 15px;
-        margin-top: 15px;
-        font-style: italic;
-      }
-
-      .button-container {
-        text-align: center;
-        margin-top: 30px;
-      }
-
-      .start-game-btn {
-        padding: 15px 40px;
-        font-size: 1.1em;
-        border: none;
-        border-radius: 3px;
-        cursor: pointer;
-        font-family: inherit;
-        font-weight: bold;
-        letter-spacing: 1px;
-        background: #e74c3c;
-        color: white;
-        transition: all 0.3s;
-      }
-
-      .start-game-btn:hover {
-        background: #c0392b;
+      to {
+        opacity: 0.8;
         transform: scale(1.05);
       }
+    }
+  </style>
+</head>
 
-      /* Language Toggle - Global */
-      .language-toggle {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        display: flex;
-        gap: 10px;
-        z-index: 9999;
-      }
+<body>
+  <!-- Global Timer -->
+  <div id="global-timer" class="timer-container">
+    <div class="timer-label" id="timer-label">Tempo Restante</div>
+    <div class="timer-value" id="timer-display">01:00</div>
+  </div>
 
-      .lang-btn {
-        padding: 10px 16px;
-        background: rgba(51, 51, 51, 0.8);
-        color: white;
-        border: 2px solid rgba(85, 85, 85, 0.8);
-        border-radius: 3px;
-        cursor: pointer;
-        font-family: 'Courier New', monospace;
-        transition: all 0.3s ease;
-        font-size: 14px;
-        font-weight: bold;
-        backdrop-filter: blur(10px);
-      }
+  <!-- Language Toggle -->
+  <div class="language-toggle">
+    <button class="lang-btn active" data-lang="pt">PT</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
 
-      .lang-btn:hover {
-        border-color: #e74c3c;
-        transform: translateY(-2px);
-      }
-
-      .lang-btn.active {
-        background: #e74c3c;
-        border-color: #e74c3c;
-        box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
-      }
-
-      /* Content Toggling */
-      .content {
-        display: none;
-        animation: fadeIn 0.5s ease;
-      }
-
-      .content.active {
-        display: block;
-      }
-
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Language Toggle -->
-    <div class="language-toggle">
-      <button class="lang-btn active" data-lang="pt">PT</button>
-      <button class="lang-btn" data-lang="en">EN</button>
-    </div>
-
+  <div class="guide-container">
+    <!-- PORTUGUESE VERSION -->
     <div class="guide-container">
-      <!-- PORTUGUESE VERSION -->
-    <div class="guide-container">
-      
+
       <!-- NAVIGATION CONTROLS (Top) -->
       <div class="nav-controls top">
         <div class="progress-bar">
@@ -359,7 +474,7 @@
 
       <!-- PORTUGUESE VERSION -->
       <div class="content active" data-lang="pt">
-        
+
         <!-- SLIDE 1: CONSENT -->
         <div class="slide active" id="pt-slide-1">
           <div class="guide-header">
@@ -368,11 +483,13 @@
           <div class="description consent-form">
             <div class="consent-item">
               <h3>Anonimato e confidencialidade</h3>
-              <p>Compreendo que ao fornecer um ID numérico, nenhum dos dados recolhidos me identifica. Os dados serão associados ao ID anónimo da experiência.</p>
+              <p>Compreendo que ao fornecer um ID numérico, nenhum dos dados recolhidos me identifica. Os dados serão
+                associados ao ID anónimo da experiência.</p>
             </div>
             <div class="consent-item">
               <h3>Participação Voluntária</h3>
-              <p>Compreendo que a minha participação nesta investigação é inteiramente voluntária. É minha escolha participar ou não.</p>
+              <p>Compreendo que a minha participação nesta investigação é inteiramente voluntária. É minha escolha
+                participar ou não.</p>
             </div>
             <div class="consent-item">
               <h3>Direito de Recusa ou Desistência</h3>
@@ -380,24 +497,26 @@
             </div>
             <div class="consent-item">
               <h3>Recolha de Dados</h3>
-              <p>Autorizo que os dados recolhidos no jogo e as respostas ao questionário sejam recolhidos e armazenados.</p>
+              <p>Autorizo que os dados recolhidos no jogo e as respostas ao questionário sejam recolhidos e armazenados.
+              </p>
             </div>
             <div class="consent-item">
               <h3>Partilha de Resultados</h3>
-              <p>Autorizo o tratamento dos dados recolhidos para este projeto com o objetivo de análise, investigação e divulgação de resultados em revistas científicas ou conferências.</p>
+              <p>Autorizo o tratamento dos dados recolhidos para este projeto com o objetivo de análise, investigação e
+                divulgação de resultados em revistas científicas ou conferências.</p>
             </div>
             <div class="consent-item">
               <h3>Reembolsos</h3>
               <p>Será fornecido um incentivo económico de um bilhete de cinema NOS pela sua participação.</p>
             </div>
-            
+
             <div class="consent-check">
               <div class="ist-id-container">
-                <label for="ist-id-pt">Número de Estudante / IST ID:</label>
-                <input type="text" id="ist-id-pt" class="ist-id-input" placeholder="e.g. ist1100000" required>
+                <label for="ist-id-pt">ID Único:</label>
+                <input type="text" id="ist-id-pt" class="ist-id-input" placeholder="ID" required>
               </div>
               <label>
-                <input type="checkbox" class="consent-checkbox"> 
+                <input type="checkbox" class="consent-checkbox">
                 <strong>Li e compreendo a informação acima.</strong>
               </label>
             </div>
@@ -407,25 +526,18 @@
         <!-- SLIDE 2: BRIEFING -->
         <div class="slide" id="pt-slide-2">
           <div class="guide-header">
-            <h1>MANUAL DE DESATIVAÇÃO</h1>
+            <h1>REGRAS DA TAREFA</h1>
             <p>Informação Geral</p>
           </div>
 
-          <div class="controls">
-            <h2>🎮 Controlos</h2>
-            <p>🖱️ <strong>Rato:</strong> Rodar a cena em volta</p>
-            <p>🔍 <strong>Roda do rato:</strong> Fazer zoom in/out</p>
-          </div>
-
           <div class="description">
-            <h2>📋 Sobre o Jogo</h2>
-            <p>
-              Bem-vindo ao desafio de desmantelamento de bombas! 
-              Neste jogo irás escolher um fio para cortar com a ajuda de um LLM e de um robô.
-            </p>
-            <p>
-              Siga atentamente as regras fornecidas abaixo para determinar qual fio deve ser cortado.
-            </p>
+            <p>Nesta tarefa, terás de decidir que fio cortar para desativar a bomba mostrada no ecrã. Para cortar um
+              fio, clica nele.</p>
+            <p>Para cada bomba, terás dois robôs que te ajudarão a decidir que fio cortar. Um LLM mostrará no ecrã o fio
+              que ele acha que é o correto. O Dash dir-te-á o fio que ele acredita ser o correto através da cor das suas
+              luzes.</p>
+            <p>Deves pensar em voz alta durante a tarefa para que possamos entender o teu raciocínio.</p>
+            <p>Primeiro, vamos fazer um tutorial para te habituares à tarefa.</p>
           </div>
         </div>
 
@@ -433,34 +545,23 @@
         <div class="slide" id="pt-slide-3">
           <div class="rules-section">
             <h2>⚙️ GUIA DE FIOS (1/2)</h2>
+            <p style="color: #ccc; margin-bottom: 15px;">Para desativar a bomba, tens de escolher o fio certo para
+              cortar.</p>
 
             <div class="rule-box">
-              <h3>Informações Importantes</h3>
+              <h3>Se a bomba tiver 3 fios</h3>
               <ul>
-                <li>O módulo de fios pode conter entre <strong>3 a 6 fios</strong></li>
-                <li>Apenas o fio correto precisa ser cortado para desarmar o módulo</li>
-                <li>A ordem dos fios começa com o primeiro no topo</li>
+                <li>Se o teclado for <strong>NUMÉRICO</strong>, corta o <strong
+                    style="color: #e74c3c">vermelho</strong>.</li>
+                <li>Caso contrário, corta o <strong style="color: #3498db">azul</strong>.</li>
               </ul>
             </div>
 
             <div class="rule-box">
-              <h3>3 Fios</h3>
+              <h3>Se a bomba tiver 4 fios</h3>
               <ul>
-                <li>Se <strong>não houver fios vermelhos</strong>, corta o segundo fio</li>
-                <li>Caso contrário, se o último fio for <strong>branco</strong>, corta o último fio</li>
-                <li>Caso contrário, se <strong>houver mais de um fio azul</strong>, corta o último fio azul</li>
-                <li>Caso contrário, corta o último fio</li>
-              </ul>
-            </div>
-
-            <div class="rule-box">
-              <h3>4 Fios</h3>
-              <ul>
-                <li>Se <strong>houver mais de um fio vermelho</strong> e o último dígito do número de série for <strong>ímpar</strong>, corta o último fio vermelho</li>
-                <li>Caso contrário, se o último fio for <strong>amarelo</strong> e não existirem fios vermelhos, corta o primeiro fio</li>
-                <li>Caso contrário, se <strong>existir exatamente um fio azul</strong>, corta o primeiro fio</li>
-                <li>Caso contrário, se <strong>existir mais de um fio amarelo</strong>, corta o último fio</li>
-                <li>Caso contrário, corta o segundo fio</li>
+                <li>Se o módulo tiver algum fio <strong style="color: #2ecc71">verde</strong>, corta-o.</li>
+                <li>Caso contrário, corta o fio <strong style="color: #e74c3c">vermelho</strong>.</li>
               </ul>
             </div>
           </div>
@@ -472,28 +573,25 @@
             <h2>⚙️ GUIA DE FIOS (2/2)</h2>
 
             <div class="rule-box">
-              <h3>5 Fios</h3>
+              <h3>Se a bomba tiver 5 fios</h3>
               <ul>
-                <li>Se o último fio for <strong>preto</strong> e o último dígito do número de série for <strong>ímpar</strong>, corta o quarto fio</li>
-                <li>Caso contrário, se <strong>existir exatamente um fio vermelho</strong> e houver mais de um fio amarelo, corta o primeiro fio</li>
-                <li>Caso contrário, se <strong>não existirem fios pretos</strong>, corta o segundo fio</li>
-                <li>Caso contrário, corta o primeiro fio</li>
+                <li>Se o teclado for <strong>ROMANO</strong>, corta o fio <strong style="color: #3498db">azul</strong>.
+                </li>
+                <li>Caso contrário, corta o fio <strong style="color: #e74c3c">vermelho</strong>.</li>
               </ul>
             </div>
 
             <div class="rule-box">
-              <h3>6 Fios</h3>
+              <h3>Se a bomba tiver 6 fios</h3>
               <ul>
-                <li>Se <strong>não existirem fios amarelos</strong> e o último dígito do número de série for <strong>ímpar</strong>, corta o terceiro fio</li>
-                <li>Caso contrário, se <strong>existir exatamente um fio amarelo</strong> e houver mais de um fio branco, corta o quarto fio</li>
-                <li>Caso contrário, se <strong>não existirem fios vermelhos</strong>, corta o último fio</li>
-                <li>Caso contrário, corta o quarto fio</li>
+                <li>Se o módulo tiver algum fio <strong style="color: #fff">branco</strong>, corta-o.</li>
+                <li>Caso contrário, corta o fio <strong style="color: #2ecc71">verde</strong>.</li>
               </ul>
             </div>
 
-            <div class="info-box">
-              ℹ️ <strong>Dica:</strong> Estuda atentamente o módulo antes de qualquer ação. 
-              Identifica cada fio pela cor e acompanha a sequência correta da regra correspondente.
+            <div class="rule-box">
+              <h3>A Regra Universal (3-6 fios)</h3>
+              <p style="margin-left: 20px; color: #ddd;">Se houver dois ou mais fios da mesma cor, corta um deles.</p>
             </div>
           </div>
 
@@ -505,7 +603,7 @@
 
       <!-- ENGLISH VERSION -->
       <div class="content" data-lang="en">
-        
+
         <!-- SLIDE 1: CONSENT -->
         <div class="slide active" id="en-slide-1">
           <div class="guide-header">
@@ -514,11 +612,13 @@
           <div class="description consent-form">
             <div class="consent-item">
               <h3>Anonymity and confidentiality</h3>
-              <p>I understand that by providing a number ID, none of the collected data identifies myself. The data will be associated with the anonymous ID of the experiment.</p>
+              <p>I understand that by providing a number ID, none of the collected data identifies myself. The data will
+                be associated with the anonymous ID of the experiment.</p>
             </div>
             <div class="consent-item">
               <h3>Voluntary Participation</h3>
-              <p>I understand that my participation in this research is entirely voluntary. It is my choice whether to participate or not.</p>
+              <p>I understand that my participation in this research is entirely voluntary. It is my choice whether to
+                participate or not.</p>
             </div>
             <div class="consent-item">
               <h3>Right to Refuse or Withdraw</h3>
@@ -526,24 +626,26 @@
             </div>
             <div class="consent-item">
               <h3>Data Collection</h3>
-              <p>I authorize the data collected in the game and the answers to the questionnaire to be collected and stored.</p>
+              <p>I authorize the data collected in the game and the answers to the questionnaire to be collected and
+                stored.</p>
             </div>
             <div class="consent-item">
               <h3>Sharing the Results</h3>
-              <p>I authorize the treatment of the data collected for this project with the purpose of analysis, research and dissemination of results in scientific journals or conferences.</p>
+              <p>I authorize the treatment of the data collected for this project with the purpose of analysis, research
+                and dissemination of results in scientific journals or conferences.</p>
             </div>
             <div class="consent-item">
               <h3>Reimbursements</h3>
               <p>You will be provided with an economic incentive of one cinema NOS voucher for your participation.</p>
             </div>
-            
+
             <div class="consent-check">
               <div class="ist-id-container">
-                <label for="ist-id-en">Student Number / IST ID:</label>
-                <input type="text" id="ist-id-en" class="ist-id-input" placeholder="e.g. ist1105901" required>
+                <label for="ist-id-en">Unique ID:</label>
+                <input type="text" id="ist-id-en" class="ist-id-input" placeholder="ID" required>
               </div>
               <label>
-                <input type="checkbox" class="consent-checkbox"> 
+                <input type="checkbox" class="consent-checkbox">
                 <strong>I have read and understand the above information.</strong>
               </label>
             </div>
@@ -553,25 +655,18 @@
         <!-- SLIDE 2: BRIEFING -->
         <div class="slide" id="en-slide-2">
           <div class="guide-header">
-            <h1>DEFUSAL MANUAL</h1>
+            <h1>TASK RULES</h1>
             <p>General Information</p>
           </div>
 
-          <div class="controls">
-            <h2>🎮 Controls</h2>
-            <p>🖱️ <strong>Mouse:</strong> Rotate the scene around</p>
-            <p>🔍 <strong>Mouse wheel:</strong> Zoom in/out</p>
-          </div>
-
           <div class="description">
-            <h2>📋 About the Game</h2>
-            <p>
-              Welcome to the bomb defusal challenge! 
-              In this game you will choose a wire to cut with the help of an LLM and a robot.
-            </p>
-            <p>
-              Follow the rules provided below carefully to determine which wire should be cut.
-            </p>
+            <p>In this task, you will have to decide which wire to cut to deactivate the bomb shown in the screen. To
+              cut a wire, click on it.</p>
+            <p>For each bomb, you’ll have two robots who will help you decide which wire to cut. An LLM will show the
+              wire it thinks is the right one on the screen. Dash will tell you the wire he believes is the right one by
+              the color of his lights.</p>
+            <p>You should think out loud during the task so we can understand your thought process.</p>
+            <p>Firstly, let's do a tutorial so you get used to the task.</p>
           </div>
         </div>
 
@@ -579,34 +674,23 @@
         <div class="slide" id="en-slide-3">
           <div class="rules-section">
             <h2>⚙️ WIRE GUIDE (1/2)</h2>
+            <p style="color: #ccc; margin-bottom: 15px;">To deactivate a bomb you have to choose the right wire to cut.
+            </p>
 
             <div class="rule-box">
-              <h3>Important Information</h3>
+              <h3>If the bomb has 3 wires</h3>
               <ul>
-                <li>The wire module may contain between <strong>3 to 6 wires</strong></li>
-                <li>Only the correct wire needs to be cut to defuse the module</li>
-                <li>The order of wires starts with the first one at the top</li>
+                <li>If the keyboard is <strong>NUMERIC</strong>, cut the <strong style="color: #e74c3c">red</strong>.
+                </li>
+                <li>Otherwise, cut the <strong style="color: #3498db">blue</strong>.</li>
               </ul>
             </div>
 
             <div class="rule-box">
-              <h3>3 Wires</h3>
+              <h3>If the bomb has 4 wires</h3>
               <ul>
-                <li>If <strong>there are no red wires</strong>, cut the second wire</li>
-                <li>Otherwise, if the last wire is <strong>white</strong>, cut the last wire</li>
-                <li>Otherwise, if <strong>there is more than one blue wire</strong>, cut the last blue wire</li>
-                <li>Otherwise, cut the last wire</li>
-              </ul>
-            </div>
-
-            <div class="rule-box">
-              <h3>4 Wires</h3>
-              <ul>
-                <li>If <strong>there is more than one red wire</strong> and the last digit of the serial number is <strong>odd</strong>, cut the last red wire</li>
-                <li>Otherwise, if the last wire is <strong>yellow</strong> and there are no red wires, cut the first wire</li>
-                <li>Otherwise, if <strong>there is exactly one blue wire</strong>, cut the first wire</li>
-                <li>Otherwise, if <strong>there is more than one yellow wire</strong>, cut the last wire</li>
-                <li>Otherwise, cut the second wire</li>
+                <li>If the module has any <strong style="color: #2ecc71">green</strong> wire, cut it.</li>
+                <li>Otherwise, cut the <strong style="color: #e74c3c">red</strong> wire.</li>
               </ul>
             </div>
           </div>
@@ -618,28 +702,26 @@
             <h2>⚙️ WIRE GUIDE (2/2)</h2>
 
             <div class="rule-box">
-              <h3>5 Wires</h3>
+              <h3>If the bomb has 5 wires</h3>
               <ul>
-                <li>If the last wire is <strong>black</strong> and the last digit of the serial number is <strong>odd</strong>, cut the fourth wire</li>
-                <li>Otherwise, if <strong>there is exactly one red wire</strong> and there is more than one yellow wire, cut the first wire</li>
-                <li>Otherwise, if <strong>there are no black wires</strong>, cut the second wire</li>
-                <li>Otherwise, cut the first wire</li>
+                <li>If the keyboard is <strong>ROMAN</strong>, cut the <strong style="color: #3498db">blue</strong>
+                  wire.</li>
+                <li>Otherwise, cut the <strong style="color: #e74c3c">red</strong> wire.</li>
               </ul>
             </div>
 
             <div class="rule-box">
-              <h3>6 Wires</h3>
+              <h3>If the bomb has 6 wires</h3>
               <ul>
-                <li>If <strong>there are no yellow wires</strong> and the last digit of the serial number is <strong>odd</strong>, cut the third wire</li>
-                <li>Otherwise, if <strong>there is exactly one yellow wire</strong> and there is more than one white wire, cut the fourth wire</li>
-                <li>Otherwise, if <strong>there are no red wires</strong>, cut the last wire</li>
-                <li>Otherwise, cut the fourth wire</li>
+                <li>If the module has any <strong style="color: #fff">white</strong> wire, cut it.</li>
+                <li>Otherwise, cut the <strong style="color: #2ecc71">green</strong> wire.</li>
               </ul>
             </div>
 
-            <div class="info-box">
-              ℹ️ <strong>Tip:</strong> Study the module carefully before any action. 
-              Identify each wire by color and follow the correct rule sequence.
+            <div class="rule-box">
+              <h3>The Universal Rule (3-6 wires)</h3>
+              <p style="margin-left: 20px; color: #ddd;">If there’re two or more wires with the same color, cut one of
+                them.</p>
             </div>
           </div>
 
@@ -662,10 +744,10 @@
       let currentLang = 'pt';
       let currentSlideIndex = 0;
       const totalSlides = 4;
-      
+
       const langButtons = document.querySelectorAll('.lang-btn');
       const contentWrappers = document.querySelectorAll('.content');
-      
+
       // Navigation Elements
       const prevBtn = document.getElementById('prev-slide');
       const nextBtn = document.getElementById('next-slide');
@@ -681,18 +763,64 @@
         en: "Guide - Keep Talking and Nobody Explodes"
       };
 
+      const timerLabels = {
+        pt: "Tempo Restante",
+        en: "Time Remaining"
+      };
+
+      // Timer State
+      let timeLeft = 60;
+      let timerInterval = null;
+      const timerContainer = document.getElementById('global-timer');
+      const timerDisplay = document.getElementById('timer-display');
+      const timerLabel = document.getElementById('timer-label');
+
       // Initialize
       function init() {
         updateSlideVisibility();
         setupEventListeners();
       }
 
+      function executeStartGame() {
+        // Get ID from the active input (or just take the one that has a value)
+        let istId = document.getElementById('ist-id-pt').value.trim() || document.getElementById('ist-id-en').value.trim();
+        if (!istId) istId = 'unknown';
+
+        const params = new URLSearchParams(window.location.search);
+        const condition = params.get('condition') || 'a';
+        window.location.href = `/bomb.html?condition=${condition}&participantId=${encodeURIComponent(istId)}&lang=${currentLang}`;
+      }
+
+      function startCountdown() {
+        if (timerInterval) return;
+
+        timerContainer.classList.add('visible');
+
+        timerInterval = setInterval(() => {
+          timeLeft--;
+
+          // Update display
+          const minutes = Math.floor(timeLeft / 60);
+          const seconds = timeLeft % 60;
+          timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+          if (timeLeft <= 10) {
+            timerDisplay.classList.add('warning');
+          }
+
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            executeStartGame();
+          }
+        }, 1000);
+      }
+
       function setupEventListeners() {
         // Language Toggles
         langButtons.forEach(btn => {
           btn.addEventListener('click', () => {
-             const lang = btn.getAttribute('data-lang');
-             setLanguage(lang);
+            const lang = btn.getAttribute('data-lang');
+            setLanguage(lang);
           });
         });
 
@@ -704,23 +832,17 @@
         // Start Game
         startButtons.forEach(btn => {
           btn.addEventListener('click', () => {
-             // Get ID from the active input (or just take the one that has a value)
-            let istId = document.getElementById('ist-id-pt').value.trim() || document.getElementById('ist-id-en').value.trim();
-            if (!istId) istId = 'unknown'; // Should be prevented by validation
-
-            const params = new URLSearchParams(window.location.search);
-            const condition = params.get('condition') || 'a';
-            window.location.href = `/bomb.html?condition=${condition}&participantId=${encodeURIComponent(istId)}`;
+            executeStartGame();
           });
         });
 
         // Input Validation (ID inputs)
         idInputs.forEach(input => {
           input.addEventListener('input', (e) => {
-             // Sync inputs
-             const val = e.target.value;
-             idInputs.forEach(i => i.value = val);
-             updateNavigationState();
+            // Sync inputs
+            const val = e.target.value;
+            idInputs.forEach(i => i.value = val);
+            updateNavigationState();
           });
         });
 
@@ -736,11 +858,12 @@
 
       function setLanguage(lang) {
         currentLang = lang;
-        
+
         // Update UI logic
         document.documentElement.lang = currentLang;
         document.title = titles[currentLang];
-        
+        timerLabel.textContent = timerLabels[currentLang];
+
         // Toggle Buttons
         langButtons.forEach(btn => {
           if (btn.getAttribute('data-lang') === lang) btn.classList.add('active');
@@ -777,10 +900,15 @@
 
         // Update Indicator
         slideIndicator.textContent = `${currentSlideIndex + 1} / ${totalSlides}`;
-        
+
         // Update Progress Bar
         const progressPct = ((currentSlideIndex + 1) / totalSlides) * 100;
         if (progressFill) progressFill.style.width = `${progressPct}%`;
+
+        // Start timer if we reached the rules (Slide 3 and 4)
+        if (currentSlideIndex >= 2) {
+          startCountdown();
+        }
 
         updateNavigationState();
       }
@@ -794,14 +922,14 @@
           nextBtn.style.display = 'none'; // Hide on last slide
         } else {
           nextBtn.style.display = 'inline-block';
-          
-          
+
+
           // Special Case: Slide 1 (Consent)
           if (currentSlideIndex === 0) {
             const currentWrapper = document.querySelector(`.content[data-lang="${currentLang}"]`);
             const isChecked = currentWrapper.querySelector('.consent-checkbox')?.checked;
             const hasId = currentWrapper.querySelector('.ist-id-input')?.value.trim().length > 0;
-            
+
             nextBtn.disabled = !(isChecked && hasId);
           } else {
             nextBtn.disabled = false;
@@ -812,10 +940,10 @@
       // Start
       init();
     </script>
-  
+
     <script>
       // Play the guide theme on the guide page only.
-      (function() {
+      (function () {
         try {
           const theme = new Audio('/audio/csgo_main_theme.mp3');
           theme.loop = true;
@@ -839,5 +967,6 @@
         }
       })();
     </script>
-  </body>
+</body>
+
 </html>

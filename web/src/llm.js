@@ -12,9 +12,9 @@ class DummyLLM {
       let reply = i18n.t('defaultReply')
 
       if (!prompt || !prompt.trim()) {
-        reply = 'Please type a message.'
+        reply = i18n.t('llmEmpty')
       } else if (lower.includes('hello') || lower.includes('hi')) {
-        reply = 'Hello! I\'m your local dummy LLM. I can echo, summarize, or reverse text.'
+        reply = i18n.t('llmHello')
       } else if (lower.startsWith('echo ')) {
         reply = prompt.slice(5)
       } else if (lower.startsWith('reverse ')) {
@@ -23,10 +23,10 @@ class DummyLLM {
         const body = prompt.split(' ').slice(1).join(' ')
         reply = body.split('.').slice(0, 2).join('.').trim() || body
       } else if (lower.includes('bomb')) {
-        reply = "I see you have a bomb viewer. Nice 3D model — you can rotate and zoom it."
+        reply = i18n.t('llmBomb')
       } else {
         // Default: echo back with a tiny change
-        reply = `You said: "${prompt}"`
+        reply = `${i18n.t('llmEchoPrefix')}"${prompt}"`
       }
 
       // Simulate thinking time proportional to message length

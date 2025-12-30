@@ -3,43 +3,385 @@
     {
       "roundId": 0,
       "wireCount": 3,
-      "wireColors": ["red", "blue", "green"],
+      "wireColors": [
+        "red",
+        "blue",
+        "green"
+      ],
       "keyboardType": "normal",
       "correctWire": "cable1",
       "suggestions": {
-        "a": { "llm": "cable1", "dash": "cable1" },
-        "b": { "llm": "cable1", "dash": "cable1" }
+        "a": {
+          "llm": "cable1",
+          "dash": "cable1"
+        },
+        "b": {
+          "llm": "cable1",
+          "dash": "cable1"
+        }
       },
       "description": "Tutorial 1: Simple 3-wire module with NUM keyboard."
     },
     {
       "roundId": 0,
       "wireCount": 3,
-      "wireColors": ["red", "blue", "green"],
+      "wireColors": [
+        "red",
+        "blue",
+        "green"
+      ],
       "keyboardType": "roman",
       "correctWire": "cable2",
       "suggestions": {
-        "a": { "llm": "cable2", "dash": "cable2" },
-        "b": { "llm": "cable2", "dash": "cable2" }
+        "a": {
+          "llm": "cable2",
+          "dash": "cable2"
+        },
+        "b": {
+          "llm": "cable2",
+          "dash": "cable2"
+        }
       },
       "description": "Tutorial 2: 5-wire module with ROM keyboard."
     }
   ],
   "rounds": [
-    { "roundId": 1, "wireCount": 4, "wireColors": ["red", "blue", "green", "orange"], "keyboardType": "normal", "correctWire": "cable3", "suggestions": { "a": { "llm": "cable3", "dash": "cable3" }, "b": { "llm": "cable3", "dash": "cable3" } } },
-    { "roundId": 2, "wireCount": 4, "wireColors": ["red", "blue", "purple", "white"], "keyboardType": "normal", "correctWire": "cable1", "suggestions": { "a": { "llm": "cable1", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable1" } } },
-    { "roundId": 3, "wireCount": 5, "wireColors": ["red", "blue", "green", "orange", "purple"], "keyboardType": "roman", "correctWire": "cable2", "suggestions": { "a": { "llm": "cable2", "dash": "cable2" }, "b": { "llm": "cable2", "dash": "cable2" } } },
-    { "roundId": 4, "wireCount": 6, "wireColors": ["red", "red", "blue", "green", "orange", "purple"], "keyboardType": "roman", "correctWire": "cable1", "suggestions": { "a": { "llm": "cable2", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable2" } } },
-    { "roundId": 5, "wireCount": 3, "wireColors": ["red", "green", "purple"], "keyboardType": "normal", "correctWire": "cable1", "suggestions": { "a": { "llm": "cable1", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable1" } } },
-    { "roundId": 6, "wireCount": 4, "wireColors": ["red", "green", "orange", "white"], "keyboardType": "normal", "correctWire": "cable2", "suggestions": { "a": { "llm": "cable2", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable2" } } },
-    { "roundId": 7, "wireCount": 5, "wireColors": ["red", "blue", "green", "purple", "orange"], "keyboardType": "normal", "correctWire": "cable1", "suggestions": { "a": { "llm": "cable1", "dash": "cable1" }, "b": { "llm": "cable1", "dash": "cable1" } } },
-    { "roundId": 8, "wireCount": 6, "wireColors": ["red", "green", "blue", "white", "purple", "orange"], "keyboardType": "normal", "correctWire": "cable4", "suggestions": { "a": { "llm": "cable4", "dash": "cable4" }, "b": { "llm": "cable4", "dash": "cable4" } } },
-    { "roundId": 9, "wireCount": 3, "wireColors": ["red", "blue", "green"], "keyboardType": "roman", "correctWire": "cable2", "suggestions": { "a": { "llm": "cable2", "dash": "cable3" }, "b": { "llm": "cable3", "dash": "cable2" } } },
-    { "roundId": 10, "wireCount": 3, "wireColors": ["red", "purple", "blue"], "keyboardType": "normal", "correctWire": "cable1", "suggestions": { "a": { "llm": "cable1", "dash": "cable3" }, "b": { "llm": "cable3", "dash": "cable1" } } },
-    { "roundId": 11, "wireCount": 4, "wireColors": ["blue", "green", "orange", "orange"], "keyboardType": "normal", "correctWire": "cable3", "suggestions": { "a": { "llm": "cable3", "dash": "cable3" }, "b": { "llm": "cable3", "dash": "cable3" } } },
-    { "roundId": 12, "wireCount": 6, "wireColors": ["red", "green", "blue", "white", "purple", "orange"], "keyboardType": "normal", "correctWire": "cable4", "suggestions": { "a": { "llm": "cable4", "dash": "cable4" }, "b": { "llm": "cable4", "dash": "cable4" } } },
-    { "roundId": 13, "wireCount": 5, "wireColors": ["red", "blue", "green", "purple", "orange"], "keyboardType": "roman", "correctWire": "cable2", "suggestions": { "a": { "llm": "cable1", "dash": "cable2" }, "b": { "llm": "cable2", "dash": "cable1" } } },
-    { "roundId": 14, "wireCount": 3, "wireColors": ["red", "blue", "purple"], "keyboardType": "roman", "correctWire": "cable2", "suggestions": { "a": { "llm": "cable2", "dash": "cable2" }, "b": { "llm": "cable2", "dash": "cable2" } } },
-    { "roundId": 15, "wireCount": 4, "wireColors": ["red", "blue", "green", "orange"], "keyboardType": "normal", "correctWire": "cable3", "suggestions": { "a": { "llm": "cable3", "dash": "cable3" }, "b": { "llm": "cable3", "dash": "cable3" } } }
+    {
+      "roundId": 1,
+      "wireCount": 4,
+      "wireColors": [
+        "red",
+        "blue",
+        "green",
+        "orange"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable3",
+      "suggestions": {
+        "a": {
+          "llm": "cable3",
+          "dash": "cable3"
+        },
+        "b": {
+          "llm": "cable3",
+          "dash": "cable3"
+        }
+      }
+    },
+    {
+      "roundId": 2,
+      "wireCount": 4,
+      "wireColors": [
+        "red",
+        "blue",
+        "purple",
+        "white"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable1",
+      "suggestions": {
+        "a": {
+          "llm": "cable1",
+          "dash": "cable1"
+        },
+        "b": {
+          "llm": "cable1",
+          "dash": "cable1"
+        }
+      }
+    },
+    {
+      "roundId": 3,
+      "wireCount": 6,
+      "wireColors": [
+        "red",
+        "red",
+        "blue",
+        "green",
+        "orange",
+        "purple"
+      ],
+      "keyboardType": "roman",
+      "correctColor": "red",
+      "correctWire": "cable1",
+      "suggestions": {
+        "a": {
+          "llm": "cable1",
+          "dash": "cable1"
+        },
+        "b": {
+          "llm": "cable1",
+          "dash": "cable1"
+        }
+      }
+    },
+    {
+      "roundId": 4,
+      "wireCount": 5,
+      "wireColors": [
+        "red",
+        "blue",
+        "green",
+        "orange",
+        "purple"
+      ],
+      "keyboardType": "roman",
+      "correctWire": "cable1",
+      "suggestions": {
+        "a": {
+          "llm": "cable1",
+          "dash": "cable2"
+        },
+        "b": {
+          "llm": "cable2",
+          "dash": "cable1"
+        }
+      }
+    },
+    {
+      "roundId": 5,
+      "wireCount": 3,
+      "wireColors": [
+        "red",
+        "green",
+        "purple"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable1",
+      "suggestions": {
+        "a": {
+          "llm": "cable1",
+          "dash": "cable1"
+        },
+        "b": {
+          "llm": "cable1",
+          "dash": "cable1"
+        }
+      }
+    },
+    {
+      "roundId": 6,
+      "wireCount": 4,
+      "wireColors": [
+        "red",
+        "green",
+        "orange",
+        "white"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable2",
+      "suggestions": {
+        "a": {
+          "llm": "cable1",
+          "dash": "cable2"
+        },
+        "b": {
+          "llm": "cable2",
+          "dash": "cable1"
+        }
+      }
+    },
+    {
+      "roundId": 7,
+      "wireCount": 5,
+      "wireColors": [
+        "red",
+        "blue",
+        "green",
+        "purple",
+        "orange"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable1",
+      "suggestions": {
+        "a": {
+          "llm": "cable1",
+          "dash": "cable1"
+        },
+        "b": {
+          "llm": "cable1",
+          "dash": "cable1"
+        }
+      }
+    },
+    {
+      "roundId": 8,
+      "wireCount": 6,
+      "wireColors": [
+        "red",
+        "green",
+        "blue",
+        "white",
+        "purple",
+        "orange"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable4",
+      "suggestions": {
+        "a": {
+          "llm": "cable4",
+          "dash": "cable4"
+        },
+        "b": {
+          "llm": "cable4",
+          "dash": "cable4"
+        }
+      }
+    },
+    {
+      "roundId": 9,
+      "wireCount": 3,
+      "wireColors": [
+        "red",
+        "blue",
+        "green"
+      ],
+      "keyboardType": "roman",
+      "correctWire": "cable2",
+      "suggestions": {
+        "a": {
+          "llm": "cable2",
+          "dash": "cable3"
+        },
+        "b": {
+          "llm": "cable3",
+          "dash": "cable2"
+        }
+      }
+    },
+    {
+      "roundId": 10,
+      "wireCount": 3,
+      "wireColors": [
+        "red",
+        "purple",
+        "blue"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable1",
+      "suggestions": {
+        "a": {
+          "llm": "cable3",
+          "dash": "cable1"
+        },
+        "b": {
+          "llm": "cable1",
+          "dash": "cable3"
+        }
+      }
+    },
+    {
+      "roundId": 11,
+      "wireCount": 4,
+      "wireColors": [
+        "blue",
+        "green",
+        "orange",
+        "orange"
+      ],
+      "keyboardType": "normal",
+      "correctColor": "orange",
+      "correctWire": "cable3",
+      "suggestions": {
+        "a": {
+          "llm": "cable3",
+          "dash": "cable3"
+        },
+        "b": {
+          "llm": "cable3",
+          "dash": "cable3"
+        }
+      }
+    },
+    {
+      "roundId": 12,
+      "wireCount": 6,
+      "wireColors": [
+        "red",
+        "green",
+        "blue",
+        "white",
+        "purple",
+        "orange"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable4",
+      "suggestions": {
+        "a": {
+          "llm": "cable4",
+          "dash": "cable4"
+        },
+        "b": {
+          "llm": "cable4",
+          "dash": "cable4"
+        }
+      }
+    },
+    {
+      "roundId": 13,
+      "wireCount": 5,
+      "wireColors": [
+        "red",
+        "blue",
+        "green",
+        "purple",
+        "orange"
+      ],
+      "keyboardType": "roman",
+      "correctWire": "cable2",
+      "suggestions": {
+        "a": {
+          "llm": "cable4",
+          "dash": "cable4"
+        },
+        "b": {
+          "llm": "cable4",
+          "dash": "cable4"
+        }
+      }
+    },
+    {
+      "roundId": 14,
+      "wireCount": 3,
+      "wireColors": [
+        "red",
+        "blue",
+        "purple"
+      ],
+      "keyboardType": "roman",
+      "correctWire": "cable2",
+      "suggestions": {
+        "a": {
+          "llm": "cable2",
+          "dash": "cable2"
+        },
+        "b": {
+          "llm": "cable2",
+          "dash": "cable2"
+        }
+      }
+    },
+    {
+      "roundId": 15,
+      "wireCount": 4,
+      "wireColors": [
+        "red",
+        "blue",
+        "green",
+        "orange"
+      ],
+      "keyboardType": "normal",
+      "correctWire": "cable3",
+      "suggestions": {
+        "a": {
+          "llm": "cable3",
+          "dash": "cable3"
+        },
+        "b": {
+          "llm": "cable3",
+          "dash": "cable3"
+        }
+      }
+    }
   ]
 }

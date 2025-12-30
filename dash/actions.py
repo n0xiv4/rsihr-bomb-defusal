@@ -106,7 +106,7 @@ def think(robot):
             head_position_index = i // 3
             yaw_angle = HEAD_YAW_LEFT + (head_position_index / 3.0) * (HEAD_YAW_RIGHT - HEAD_YAW_LEFT)
             robot.head_yaw(int(yaw_angle))
-            # robot.say(random.choice(THINKING_SOUNDS))
+            robot.say(random.choice(THINKING_SOUNDS))
             time.sleep(0.5)
         
         elif i == 4:
@@ -139,11 +139,12 @@ def found_answer(robot, color):
     :param color: Color of the answer (6-digit e.g. #fa3b2c, 3-digit e.g. #fbb, 
                   or fully spelled color e.g. white)
     """
+    sounds = ["systwhistle_a", "systwhistle_b", "bragging"]
     # Light up all LEDs with the answer color
     all_leds = 0b111111111111  # All 12 LEDs lit (8191 in decimal)
     robot.eye(all_leds)
     turn_all_lights(robot, color)
-    robot.say("bragging")
+    robot.say(random.choice(sounds), volume=0.5)
     robot.turn(180, 150)
     turn_all_lights(robot, color)
     time.sleep(.6)
