@@ -1,5 +1,3 @@
-// Exports: initLLM({ container })
-
 import robotAvatar from './robot.svg'
 import { i18n } from './i18n.js'
 
@@ -158,5 +156,3 @@ export function initLLM({ container }) {
     statusText.textContent = i18n.t('statusWriting')
   })
 }
-
-// No default export

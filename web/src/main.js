@@ -6,8 +6,6 @@ import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
 
-// ... (previous imports)
-
 import { BombCounter } from './counter.js'
 import { initLLM } from './llm.js'
 import { logRoundData } from './firebase.js'
@@ -25,7 +23,7 @@ function callDash(endpoint, body = {}) {
     console.warn(`Dash ${endpoint} failed:`, err);
     // Return a resolved promise so callers can keep going
     return Promise.resolve(null);
-  }); // Warn but don't break game
+  });
 }
 
 /**
@@ -100,9 +98,6 @@ function waitForDashIdle({ timeout = 3000, interval = 200 } = {}) {
   });
 }
 
-// ... (previous imports)
-
-// Scene setup
 // Scene setup
 const scene = new THREE.Scene()
 scene.fog = new THREE.FogExp2(0x111111, 0.02)
@@ -122,8 +117,6 @@ camera.lookAt(0, 0, 0)
 const listener = new THREE.AudioListener()
 camera.add(listener)
 
-// Note: Theme audio is played only on the guide page. Here we keep an audio listener
-// for in-game SFX only.
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
@@ -192,7 +185,7 @@ const audioBuffers = {
 };
 
 // Keep track of playing THREE.Audio instances by type so we can stop them
-const audioPlayers = new Map(); // type -> Set(THREE.Audio)
+const audioPlayers = new Map();
 
 // Preload SFX
 const sfxLoader = new THREE.AudioLoader();
@@ -285,7 +278,6 @@ fetch('/config/rounds.json')
     gameConfig = config;
     gameConfig.conditionName = conditionKey === 'b' ? 'LLM Fails More' : 'Dash Fails More';
 
-    // Flatten and Process Rounds
     const processRound = (r) => ({
       ...r,
       llmSuggestion: r.suggestions[conditionKey].llm,
@@ -327,7 +319,6 @@ function loadModel() {
     console.log('Material cache created with', Object.keys(materialCache).length, 'materials');
     console.log('=================================');
 
-    // Setup Counter Mesh
     const displayMesh = bombModel.getObjectByName('counter');
     if (displayMesh) {
       displayMesh.material = new THREE.MeshStandardMaterial({
@@ -372,9 +363,7 @@ function startRound(index) {
   const roundData = allRounds[index];
   isRoundActive = true;
 
-  // Timer: 40s (handled by default in reset)
   bombCounter.reset();
-  // Ensure any previous timer SFX is stopped, then play round-start looping timer sound
   stopSound('timer');
   playSound('timer', { volume: 0.6, loop: true });
 
@@ -600,7 +589,7 @@ function showResultOverlay(result, roundIdx, cutCableName = null, wasCutBeforeFe
   // Log Data (Skip first 2 tutorial rounds)
   if (gameConfig && roundIdx >= 2) {
     const roundData = allRounds[roundIdx];
-    const timeTaken = 40 - bombCounter.timeLeft; // Assuming 40s start time
+    const timeTaken = 40 - bombCounter.timeLeft;
 
     const sessionData = {
       roundId: roundData.roundId,
@@ -652,7 +641,7 @@ async function onClick(event) {
   if (!isRoundActive || !gameConfig) return;
 
   if (hoveredObject) {
-    const cableName = hoveredObject.name; // Physical cable name (e.g., "cable3")
+    const cableName = hoveredObject.name;
     const brokenCableName = cableName + '_d';
     const brokenCable = scene.getObjectByName(brokenCableName);
 
