@@ -40,6 +40,5 @@ export async function logRoundData(data) {
         console.log("✅ Data logged with ID: ", docRef.id);
     } catch (e) {
         console.error("❌ Error adding document: ", e);
-        // Fallback: Store locally if offline/error? (Optional)
     }
 }
