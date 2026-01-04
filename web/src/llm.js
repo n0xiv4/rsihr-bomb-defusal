@@ -3,39 +3,6 @@
 import robotAvatar from './robot.svg'
 import { i18n } from './i18n.js'
 
-class DummyLLM {
-  // Simulate a response from an LLM. Returns a Promise<string>
-  respond(prompt) {
-    // Very small "intelligence" — canned heuristics and transforms
-    return new Promise((resolve) => {
-      const lower = (prompt || '').toLowerCase()
-      let reply = i18n.t('defaultReply')
-
-      if (!prompt || !prompt.trim()) {
-        reply = i18n.t('llmEmpty')
-      } else if (lower.includes('hello') || lower.includes('hi')) {
-        reply = i18n.t('llmHello')
-      } else if (lower.startsWith('echo ')) {
-        reply = prompt.slice(5)
-      } else if (lower.startsWith('reverse ')) {
-        reply = prompt.slice(8).split('').reverse().join('')
-      } else if (lower.startsWith('summary ') || lower.startsWith('summarize ')) {
-        const body = prompt.split(' ').slice(1).join(' ')
-        reply = body.split('.').slice(0, 2).join('.').trim() || body
-      } else if (lower.includes('bomb')) {
-        reply = i18n.t('llmBomb')
-      } else {
-        // Default: echo back with a tiny change
-        reply = `${i18n.t('llmEchoPrefix')}"${prompt}"`
-      }
-
-      // Simulate thinking time proportional to message length
-      const delay = Math.min(1500 + prompt.length * 20, 2500)
-      setTimeout(() => resolve(reply), delay)
-    })
-  }
-}
-
 function highlightColors(text) {
   const colors = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'black', 'white', 'gray', 'pink', 'cyan', 'magenta', 'lime', 'teal', 'indigo', 'violet', 'gold', 'silver', 'brown'];
   const regex = new RegExp(`\\b(${colors.join('|')})\\b`, 'gi');
