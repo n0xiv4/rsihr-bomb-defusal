@@ -3,13 +3,6 @@ import { getFirestore, collection, addDoc, serverTimestamp } from "firebase/fire
 
 // TODO: REPLACE WITH YOUR FIREBASE CONFIGURATION
 const firebaseConfig = {
-  apiKey: "AIzaSyCyzdvP_9f230mUTPas35oNb8C_jyCPVFM",
-  authDomain: "hri-group1.firebaseapp.com",
-  projectId: "hri-group1",
-  storageBucket: "hri-group1.firebasestorage.app",
-  messagingSenderId: "799612097558",
-  appId: "1:799612097558:web:68d740ae08491ae4f69137",
-  measurementId: "G-9GEPES5ZYW"
 };
 
 // Initialize Firebase
