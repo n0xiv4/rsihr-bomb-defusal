@@ -115,16 +115,6 @@
 
     .btn-a:hover { background-color: var(--primary-color); border-color: var(--primary-color); }
     .btn-b:hover { background-color: var(--accent-color); border-color: var(--accent-color); }
-
-    footer {
-      margin-top: auto;
-      padding: 2rem;
-      text-align: center;
-      color: #666;
-      font-size: 0.9rem;
-      width: 100%;
-      border-top: 1px solid #222;
-    }
   </style>
 </head>
 <body>
@@ -137,24 +127,18 @@
   <div class="container">
     <div class="card">
       <span class="condition-tag tag-a">Condition A</span>
-      <h2>Reliable LLM</h2>
-      <p>In this condition, the Dash robot is prone to failures, while the LLM analysis provides reliable, correct suggestions for the majority of the rounds.</p>
-      <p style="font-size: 0.9em; color: #888;">Focus: Trust transfer when the physical agent fails.</p>
+      <h2>Dash Fails First</h2>
+      <p>In this condition, the Dash robot makes a mistake first while the LLM provides the correct answer for defusing the bomb in the 4th round, after that they both fail alternatively and in the last round that there is a fail, they both fail.</p>
       <a href="/guide.html?condition=a" class="btn btn-a">Launch Condition A</a>
     </div>
 
     <div class="card">
       <span class="condition-tag tag-b">Condition B</span>
-      <h2>Reliable Robot</h2>
-      <p>In this condition, the Dash robot performs perfectly, but the LLM system is experimental and prone to providing incorrect defusal suggestions.</p>
-      <p style="font-size: 0.9em; color: #888;">Focus: Overreliance on digital intelligence.</p>
+      <h2>LLM Fails First</h2>
+      <p>In this condition, the LLM makes a mistake first while the Dash robot provides the correct answer for defusing the bomb in the 4th round, after that they both fail alternatively and in the last round that there is a fail, they both fail.</p>
       <a href="/guide.html?condition=b" class="btn btn-b">Launch Condition B</a>
     </div>
   </div>
-
-  <footer>
-    <p>&copy; 2025 IST Research Group. Local Experiment Server.</p>
-  </footer>
 
 </body>
 </html>
